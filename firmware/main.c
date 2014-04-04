@@ -23,6 +23,7 @@
 #include "twipwm.h"
 #include "shifter.h"
 #include "timer.h"
+#include "spi.h"
 #include "protocol.h"
 #include "crc.h"
 
@@ -412,9 +413,10 @@ int main(int argv,char * * argc)
 	uart_init();
 	uart1_init();
 	while(1){
-		uart_write((char)0x55);
-		uart1_write((char)0x55);
-		delay(1000);
+		//uart_write((char)0x55);
+		//uart1_write((char)0x55);
+		spi_write((char)0x55);
+		//delay(1000);
 	}
 	return 0;
 }

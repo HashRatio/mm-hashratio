@@ -28,6 +28,7 @@
 #define IRQ_TIMER1		(0x00000040) /* 6 */
 
 /* Registers */
+#define SPI0_BASE		(0x80000000)
 #define UART0_BASE		(0x80000100)
 #define UART1_BASE		(0x80000300)
 #define SHA256_BASE		(0x80000400)
@@ -35,6 +36,31 @@
 #define TWIPWM_BASE		(0x80000600)
 #define SHIFTER_BASE		(0x80000614)
 #define TIMER_BASE		(0x80000620)
+
+/* SPI */
+#define LM32_SPI_STAT_ROE	(1 << 2)
+#define LM32_SPI_STAT_TOE	(1 << 3)
+#define LM32_SPI_STAT_TMT	(1 << 4)
+#define LM32_SPI_STAT_TRDY	(1 << 5)
+#define LM32_SPI_STAT_RRDY	(1 << 6)
+#define LM32_SPI_STAT_ERR	(1 << 7)
+
+#define LM32_SPI_CTRL_IROE	(1 << 0)
+#define LM32_SPI_CTRL_ITOE	(1 << 1)
+#define LM32_SPI_CTRL_ITRDY	(1 << 3)
+#define LM32_SPI_CTRL_IRRDY	(1 << 4)
+#define LM32_SPI_CTRL_IE	(1 << 5)
+#define LM32_SPI_CTRL_SSO	(1 << 7)
+
+struct lm32_spi {
+	volatile unsigned int rx;
+	volatile unsigned int tx;
+	volatile unsigned int status;
+	volatile unsigned int control;
+	volatile unsigned int ssmask;
+};
+
+
 
 /* UART */
 #define LM32_UART_IER_RBRI	(1 << 0)
