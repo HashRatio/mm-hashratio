@@ -408,7 +408,7 @@ int main1(int argv, char **argc)
 	return 0;
 }
 int main(int argv,char * * argc)
-{
+{ 
 	uart_init();
 	uart1_init();
 	while(1){

@@ -13,7 +13,7 @@ NET "uartSOUT" LOC = R14;
 NET "uartSOUT" PULLUP;
 
 # UART debug
-NET "uart_debugSIN" LOC = G11;
+NET "uart_debugSIN" LOC = H11;
 NET "uart_debugSOUT" LOC = G12;
 NET "uart_debugSOUT" PULLUP;
 # aLink
