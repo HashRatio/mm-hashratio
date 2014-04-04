@@ -503,7 +503,7 @@ wire spiSPI_en;
 wire spiSPI_INT_O;
 input  spiMISO_MASTER;
 output  spiMOSI_MASTER;
-output [1-1:0] spiSS_N_MASTER;
+output [7:0] spiSS_N_MASTER;
 output  spiSCLK_MASTER;
 
 wire [31:0] gpioGPIO_DAT_O;
@@ -842,7 +842,7 @@ assign uartUART_SEL_I = ((
 	SHAREDBUS_ADR_I[1:0] == 2'b00) ? SHAREDBUS_SEL_I[3] : ((
 	SHAREDBUS_ADR_I[1:0] == 2'b01) ? SHAREDBUS_SEL_I[2] : ((
 	SHAREDBUS_ADR_I[1:0] == 2'b10) ? SHAREDBUS_SEL_I[1] : SHAREDBUS_SEL_I[0])));
-assign uartUART_en = (SHAREDBUS_ADR_I[31:4] == 28'b1000000000000000000000010000);
+assign uartUART_en = (SHAREDBUS_ADR_I[31:4] == 28'b1000000000000000000000010000);//Device address 0x80000100
 wire uartSOUT_w ;
 assign uartSOUT     = uartSOUT_w ? 1'bz : 1'b0;
 
@@ -915,12 +915,12 @@ wire [31:0] spiSPI_DAT_I;
 assign spiSPI_DAT_I = SHAREDBUS_DAT_I[31:0];
 wire [3:0] spiSPI_SEL_I;
 assign spiSPI_SEL_I = SHAREDBUS_SEL_I;
-assign spiSPI_en = (SHAREDBUS_ADR_I[31:8] == 24'b100000000000000000000000);
-`ifdef SPI_EN
+assign spiSPI_en = (SHAREDBUS_ADR_I[31:8] == 24'b100000000000000000000000);//Device address 0x80000000
+//`ifdef SPI_EN
 spi
 #(
 .MASTER(1),
-.SLAVE_NUMBER(32'h1),
+.SLAVE_NUMBER(32'h8),
 .CLOCK_SEL(0),
 .CLKCNT_WIDTH(6),
 .INTERVAL_LENGTH(2),
@@ -948,22 +948,22 @@ spi
 .SCLK_MASTER(spiSCLK_MASTER),
 .SPI_INT_O(spiSPI_INT_O),
 .CLK_I(clk_i), .RST_I(sys_reset));
-`else
-assign spiSPI_DAT_O  = 'b0;
-assign spiSPI_ACK_O  = 'b0;
-assign spiSPI_ERR_O  = 'b0;
-assign spiSPI_RTY_O  = 'b0;
-assign spiMOSI_MASTER= 'b0;
-assign spiSS_N_MASTER= 'b0;
-assign spiSCLK_MASTER= 'b0;
-assign spiSPI_INT_O  = 'b0;
-`endif
+// `else
+// assign spiSPI_DAT_O  = 'b0;
+// assign spiSPI_ACK_O  = 'b0;
+// assign spiSPI_ERR_O  = 'b0;
+// assign spiSPI_RTY_O  = 'b0;
+// assign spiMOSI_MASTER= 'b0;
+// assign spiSS_N_MASTER= 'b0;
+// assign spiSCLK_MASTER= 'b0;
+// assign spiSPI_INT_O  = 'b0;
+// `endif
 
 wire [31:0] gpioGPIO_DAT_I;
 assign gpioGPIO_DAT_I = SHAREDBUS_DAT_I[31:0];
 wire [3:0] gpioGPIO_SEL_I;
 assign gpioGPIO_SEL_I = SHAREDBUS_SEL_I;
-assign gpioGPIO_en = (SHAREDBUS_ADR_I[31:4] == 28'b1000000000000000000000100000);
+assign gpioGPIO_en = (SHAREDBUS_ADR_I[31:4] == 28'b1000000000000000000000100000);//Device address 0x80000200
 
 `ifdef GPIO_EN
 gpio
@@ -1019,7 +1019,7 @@ assign uart_debugUART_SEL_I = ((
 	SHAREDBUS_ADR_I[1:0] == 2'b00) ? SHAREDBUS_SEL_I[3] : ((
 	SHAREDBUS_ADR_I[1:0] == 2'b01) ? SHAREDBUS_SEL_I[2] : ((
 	SHAREDBUS_ADR_I[1:0] == 2'b10) ? SHAREDBUS_SEL_I[1] : SHAREDBUS_SEL_I[0])));
-assign uart_debugUART_en = (SHAREDBUS_ADR_I[31:4] == 28'b1000000000000000000000110000);
+assign uart_debugUART_en = (SHAREDBUS_ADR_I[31:4] == 28'b1000000000000000000000110000);//Device address 0x80000300
 uart_core
 #(
 .UART_WB_DAT_WIDTH(8),
@@ -1054,7 +1054,7 @@ uart_core
 .INTR(uart_debugINTR),
 .CLK(clk_i), .RESET(sys_reset));
 
-assign shaSHA_en = (SHAREDBUS_ADR_I[31:5] == 28'b100000000000000000000100000);
+assign shaSHA_en = (SHAREDBUS_ADR_I[31:5] == 28'b100000000000000000000100000);//Device address 0x80000400
 sha sha256(
 // system clock and reset
 /*input        */ .CLK_I     (clk_i),
@@ -1076,7 +1076,7 @@ sha sha256(
 /*output [31:0]*/ .SHA_DAT_O (shaSHA_DAT_O                )
 );
 
-assign alinkALINK_en = (SHAREDBUS_ADR_I[31:6] == 26'b10000000000000000000010100);
+assign alinkALINK_en = (SHAREDBUS_ADR_I[31:6] == 26'b10000000000000000000010100);//Device address 0x80000500
 alink alink(
 // system clock and reset
 /*input         */ .CLK_I       (clk_i) ,
@@ -1107,7 +1107,7 @@ alink alink(
 );
 
 
-assign twiTWI_en = (SHAREDBUS_ADR_I[31:6] == 26'b10000000000000000000011000);
+assign twiTWI_en = (SHAREDBUS_ADR_I[31:6] == 26'b10000000000000000000011000);//Device address 0x80000600
 assign TWI_SCL = TWI_SCL_O == 1'b0 ? 1'b0 : 1'bz ;//p85
 assign TWI_SDA = TWI_SDA_OEN == 1'b0 ? 1'b0 : 1'bz ;//p8
 twi u_twi(
