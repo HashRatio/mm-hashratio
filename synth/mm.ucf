@@ -1,6 +1,6 @@
 # Global controls
-NET "ex_clk_i" LOC = J16;
-NET "ex_clk_o" LOC = A9;
+NET "ex_clk_i" LOC = K12;
+NET "ex_clk_o" LOC = F12;
 
 #P1<External>
 #GND GND GND GND GND GND GND GND GND GND
@@ -8,14 +8,14 @@ NET "ex_clk_o" LOC = A9;
 #                |<-----pull-up---->|
 
 # UART
-NET "uartSIN"  LOC = C8;
-NET "uartSOUT" LOC = A12;
+NET "uartSIN"  LOC = R12;
+NET "uartSOUT" LOC = R14;
 NET "uartSOUT" PULLUP;
 
 # UART debug
-NET "uart_debugSIN" LOC = E16;
-NET "uart_debugSOUT" LOC = E15;
-
+NET "uart_debugSIN" LOC = G11;
+NET "uart_debugSOUT" LOC = G12;
+NET "uart_debugSOUT" PULLUP;
 # aLink
 #
 # FPGA   2-1    | 4-3   6-5   8-7   10-9   FAN
