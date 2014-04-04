@@ -27,7 +27,7 @@ BATCHFILE	:= $(shell mktemp)
 HARDWARE_NAME	= mm
 PRJ_NAME	= mm
 
-isedir  ?= /home/Xilinx/14.6/ISE_DS/
+isedir  ?= /opt/Xilinx/14.6/ISE_DS/
 xil_env ?= . $(isedir)/settings$(shell getconf LONG_BIT).sh &>/dev/null
 
 
