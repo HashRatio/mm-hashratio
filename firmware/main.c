@@ -413,10 +413,10 @@ int main(int argv,char * * argc)
 	uart_init();
 	uart1_init();
 	while(1){
-		//uart_write((char)0x55);
-		//uart1_write((char)0x55);
+		uart_write((char)0x55);
+		uart1_write((char)0x55);
 		spi_write((char)0x55);
-		//delay(1000);
+		delay(1000);
 	}
 	return 0;
 }
