@@ -23,6 +23,7 @@
 #include "twipwm.h"
 #include "shifter.h"
 #include "timer.h"
+#include "spi.h"
 #include "protocol.h"
 #include "crc.h"
 
@@ -344,7 +345,7 @@ static int get_pkg(struct mm_work *mw)
 	return 0;
 }
 
-int main(int argv, char **argc)
+int main1(int argv, char **argc)
 {
 	struct mm_work mm_work;
 	struct work work;
@@ -405,5 +406,17 @@ int main(int argv, char **argc)
 		}
 	}
 
+	return 0;
+}
+int main(int argv,char * * argc)
+{ 
+	uart_init();
+	uart1_init();
+	while(1){
+		uart_write((char)0x55);
+		uart1_write((char)0x55);
+		spi_write((char)0x55);
+		delay(1000);
+	}
 	return 0;
 }
