@@ -8,8 +8,8 @@ NET "ex_clk_o" LOC = F12;
 #                |<-----pull-up---->|
 
 # UART
-NET "uartSIN"  LOC = R12;
-NET "uartSOUT" LOC = R14;
+NET "uartSIN"  LOC = R14;
+NET "uartSOUT" LOC = R12;
 NET "uartSOUT" PULLUP;
 NET "uartRESET_N" LOC = R15;
 NET "hubRESET_N" LOC = R16;

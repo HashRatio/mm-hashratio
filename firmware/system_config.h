@@ -29,6 +29,7 @@
 
 /* Registers */
 #define SPI0_BASE		(0x80000000)
+#define SPI1_BASE		(0x80000700)
 #define UART0_BASE		(0x80000100)
 #define UART1_BASE		(0x80000300)
 #define SHA256_BASE		(0x80000400)
