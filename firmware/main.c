@@ -364,6 +364,7 @@ int main1(int argv, char **argc)
 	g_module_id = read_module_id();
 
 	uart_init();
+	uart1_init();
 	debug32("%d:MM-%s\n", g_module_id, MM_VERSION);
 	led(0);
 
@@ -375,6 +376,7 @@ int main1(int argv, char **argc)
 	set_voltage(0x8f00);
 
 	while (1) {
+		uart1_write((char)0x55);
 		get_pkg(&mm_work);
 
 		wdg_feed((CPU_FREQUENCY / 1000) * 2);
@@ -408,15 +410,25 @@ int main1(int argv, char **argc)
 
 	return 0;
 }
+void spi_test()
+{
+	unsigned char i = 0;
+	spi_write(i,(char)0x80);delay(5); 
+	spi_write(unsigned int idx,char c)(i,(char)0x55);delay(100); 
+	spi_write(i,(char)0x40);delay(100);
+	//spi_write(i,(char)0x5F);
+}
 int main(int argv,char * * argc)
-{ 
+{
+	unsigned char c = 0x00;
 	uart_init();
 	uart1_init();
 	while(1){
-		uart_write((char)0x55);
-		uart1_write((char)0x55);
-		spi_write((char)0x55);
-		delay(1000);
+		uart_write(i);
+		c = uart_read();
+		uart1_write(c);
+		delay(100);
+		i++;
 	}
 	return 0;
 }
