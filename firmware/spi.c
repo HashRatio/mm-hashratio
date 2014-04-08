@@ -8,32 +8,38 @@
 #include "uart.h"
 
 static struct lm32_spi *spi0 = (struct lm32_spi *)SPI0_BASE;
-static struct lm32_spi *spi1 = (struct lm32_spi *)SPI1_BASE;
+//static struct lm32_spi *spi1 = (struct lm32_spi *)SPI1_BASE;
 
 
-void spi_write(unsigned int idx,char c)
+void spi_select(unsigned char cid)
 {
-	//unsigned char i = 0;
-	/*unsigned char mask = 1;
-	for(i=0;i<=1;i++){
-		mask = mask << i;
-		//while (!(readb(&spi0->status) & LM32_SPI_STAT_TRDY))
-			//	;
-		writeb(mask,&spi0->ssmask);
-		writeb(c, &spi0->tx);
-	}*/
-	/*while (!(i = readb(&spi0->status) & LM32_SPI_STAT_TRDY)){
-		uart1_write(i);*/
-	/*while(1){
-		i = readb(&spi0->status);
-		uart1_write(i);
-		if(!(i & LM32_SPI_STAT_TRDY))
-			break;
-	}*/
-	
-	writeb(0x01,&spi0->ssmask);
+	writeb(cid,&spi0->ssmask);
+}
+
+void spi_write(unsigned char cid,char c)
+{
 	writeb(c, &spi0->tx);
-	writeb(0x01,&spi1->ssmask);
-	writeb(c, &spi1->tx);
+}
+
+unsigned char spi_read(unsigned char idx, unsigned char * pbuff)
+{
+	//if(!(readb(&spi0->status)&LM32_SPI_STAT_RRDY))
+	//	return 0;
+	*pbuff = readb(&spi0->rx);
+	return 1;
+}
+
+void be200_wr(unsigned char idx, unsigned char rid, char c)
+{
+	spi_write(0x01,0x80);
+	spi_write(0x01,0x55);
+}
+
+unsigned char be200_rd(unsigned char idx, unsigned char rid, unsigned char * pbuff)
+{
+	spi_write(0x01,0x40);
+	if(!spi_read(0x01,pbuff))
+		return 0;
+	return 1;
 }
 

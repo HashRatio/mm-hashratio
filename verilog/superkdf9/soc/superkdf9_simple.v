@@ -1066,6 +1066,9 @@ assign uart_debugUART_SEL_I = ((
 	SHAREDBUS_ADR_I[1:0] == 2'b01) ? SHAREDBUS_SEL_I[2] : ((
 	SHAREDBUS_ADR_I[1:0] == 2'b10) ? SHAREDBUS_SEL_I[1] : SHAREDBUS_SEL_I[0])));
 assign uart_debugUART_en = (SHAREDBUS_ADR_I[31:4] == 28'b1000000000000000000000110000);//Device address 0x80000300
+wire uart_debugSOUT_w ;
+assign uart_debugSOUT     = uart_debugSOUT_w ? 1'bz : 1'b0;
+
 uart_core
 #(
 .UART_WB_DAT_WIDTH(8),
@@ -1096,7 +1099,7 @@ uart_core
 .UART_CYC_I(SHAREDBUS_CYC_I & uart_debugUART_en),
 .UART_STB_I(SHAREDBUS_STB_I & uart_debugUART_en),
 .SIN(uart_debugSIN),
-.SOUT(uart_debugSOUT),
+.SOUT(uart_debugSOUT_w),
 .INTR(uart_debugINTR),
 .CLK(clk_i), .RESET(sys_reset));
 

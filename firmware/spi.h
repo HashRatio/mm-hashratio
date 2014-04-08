@@ -9,7 +9,13 @@
 #ifndef _SPI_H
 #define _SPI_H
 
+void spi_select(unsigned char cid);
 void spi_write(unsigned int idx, char c);
+unsigned char spi_read(unsigned char idx, unsigned char * pbuff);
+void be200_wr(unsigned char idx, unsigned char rid, char c);
+unsigned char be200_rd(unsigned char idx, unsigned char rid, unsigned char * pbuff);
+
+
 
 #endif	/* _SPI_H */
 
