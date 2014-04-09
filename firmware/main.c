@@ -411,66 +411,24 @@ int main1(int argv, char **argc)
 	return 0;
 }
 
-void spi_test()
-{
-	unsigned char i = 0x01;
-	unsigned char buff;
-	spi_select(i);
-
-	//spi_select(i);
-	//spi_write(i,0xff);
-	//delay(1);
-	
-	spi_write(i,(char)0x00);
-	delay(1);
-	spi_read(i,&buff);
-	uart1_write(buff);
-	
-	spi_write(i,(char)0x00);
-	delay(1);
-	spi_read(i,&buff);
-	uart1_write(buff);
-	
-	spi_write(i,(char)0x00);
-	delay(1);
-	spi_read(i,&buff);
-	uart1_write(buff);
-	
-	spi_write(i,(char)0x00);
-	delay(1);
-	spi_read(i,&buff);
-	uart1_write(buff);
-	//spi_write(i,(char)0x7F);
-	//delay(1);
-	//spi_write(i,(char)0x40);
-	return;
-}
 int main(int argv,char * * argc)
 {
-	unsigned char i = 0x01;
-	unsigned char c = 0x55;
+	unsigned char c = 0x00;
 	irq_setmask(0);
 	irq_enable(1);
 	uart_init();
 	uart1_init();
-	spi_select(i);
-	spi_write(i,0xff);
-	delay(1000);
-
-	//spi_write(i,(char)0xAC);
-	//delay(1);
+	//spi_select(0x01);
 	
 	while(1){
-		//spi_test();
-		//c = uart_read();
-		//uart1_write(c);
 
-		c = uart1_read();
-		uart_write(c);
-		//uart_write(c);
-		//uart_test();
-		delay(1000);
-		i++;
+		/*c = uart1_read();
+		spi_write(0x01,c);
+
+		delay(50);*/
+		spi_test(c);
+		delay(50);
+		c++;
 	}
 	return 0;
 }

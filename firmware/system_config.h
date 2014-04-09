@@ -22,21 +22,21 @@
  * Define at last few lines of verilog/superkdf9/soc/superkdf9_simple.v
  */
 #define IRQ_UART		(0x00000008) /* 3 */
-#define IRQ_UARTDEBUG		(0x00000010) /* 4 */
+#define IRQ_UARTDEBUG	(0x00000010) /* 4 */
 
 #define IRQ_TIMER0		(0x00000020) /* 5 */
 #define IRQ_TIMER1		(0x00000040) /* 6 */
 
 /* Registers */
 #define SPI0_BASE		(0x80000000)
-#define SPI1_BASE		(0x80000700)
 #define UART0_BASE		(0x80000100)
 #define UART1_BASE		(0x80000300)
 #define SHA256_BASE		(0x80000400)
 #define ALINK_BASE		(0x80000500)
 #define TWIPWM_BASE		(0x80000600)
-#define SHIFTER_BASE		(0x80000614)
+#define SHIFTER_BASE	(0x80000614)
 #define TIMER_BASE		(0x80000620)
+#define SPI1_BASE		(0x80000700)
 
 /* SPI */
 #define LM32_SPI_STAT_ROE	(1 << 2)
@@ -55,12 +55,15 @@
 
 struct lm32_spi {
 	volatile unsigned int rx;
+	//volatile unsigned char rsv1[3];
 	volatile unsigned int tx;
+	//volatile unsigned char rsv2[3];
 	volatile unsigned int status;
+	//volatile unsigned char rsv3[3];
 	volatile unsigned int control;
+	//volatile unsigned char rsv4[3];
 	volatile unsigned int ssmask;
 };
-
 
 
 /* UART */

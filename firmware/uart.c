@@ -133,7 +133,7 @@ void uart_nwrite(const char *s, unsigned int l)
 
 
 #ifdef DEBUG
-#define UART1_RINGBUFFER_SIZE_RX 1024
+#define UART1_RINGBUFFER_SIZE_RX 16
 #define UART1_RINGBUFFER_MASK_RX (UART1_RINGBUFFER_SIZE_RX-1)
 
 //UART1 rx buffer is limited up to 16 bytes, DO NOT send data more than that at one time.
@@ -187,6 +187,39 @@ void uart1_write(char c)
 	writeb(c, &uart1->rxtx);
 
 	irq_setmask(oldmask);
+}
+
+void uart1_writeb(unsigned char b)
+{
+	unsigned int oldmask;
+
+	oldmask = irq_getmask();
+	irq_setmask(0);
+
+	while (!(readb(&uart1->lsr) & (LM32_UART_LSR_THRR | LM32_UART_LSR_TEMT)))
+		;
+	writeb(b, &uart1->rxtx);
+
+	irq_setmask(oldmask);
+
+}
+
+void uart1_writew(unsigned short w)
+{
+	unsigned char i;
+	unsigned char * b = (unsigned char *)&w;
+	for(i=0;i<2;i++){
+		uart1_writeb(b[i]);
+	}
+}
+
+void uart1_writel(unsigned int l)
+{
+	unsigned char i;
+	unsigned char * b = (unsigned char *)&l;
+	for(i=0;i<4;i++){
+		uart1_writeb(b[i]);
+	}
 }
 
 void uart1_isr(void)

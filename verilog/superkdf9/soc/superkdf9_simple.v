@@ -374,10 +374,10 @@ module mm (
 , spi0_SS_N_MASTER
 , spi0_SCLK_MASTER
 
-, spi1_MISO_MASTER
+/*, spi1_MISO_MASTER
 , spi1_MOSI_MASTER
 , spi1_SS_N_MASTER
-, spi1_SCLK_MASTER
+, spi1_SCLK_MASTER*/
 
 , POWER_ON
 , PWM
@@ -501,7 +501,7 @@ output  spi0_MOSI_MASTER;
 output [7:0] spi0_SS_N_MASTER;
 output  spi0_SCLK_MASTER;
 
-wire [31:0] spi1_SPI_DAT_O;
+/*wire [31:0] spi1_SPI_DAT_O;
 wire   spi1_SPI_ACK_O;
 wire   spi1_SPI_ERR_O;
 wire   spi1_SPI_RTY_O;
@@ -510,7 +510,7 @@ wire spi1_SPI_INT_O;
 input  spi1_MISO_MASTER;
 output  spi1_MOSI_MASTER;
 output [7:0] spi1_SS_N_MASTER;
-output  spi1_SCLK_MASTER;
+output  spi1_SCLK_MASTER;*/
 
 wire [31:0] gpioGPIO_DAT_O;
 wire   gpioGPIO_ACK_O;
@@ -609,7 +609,6 @@ else
 if (counter[2] == 1'b0)
 counter <= #1 counter + 1'b1;
 
-
 wire one_zero = 1'b0;
 wire[1:0] two_zero = 2'b00;
 wire[2:0] three_zero = 3'b000;
@@ -668,41 +667,37 @@ arbiter (
 assign SHAREDBUS_DAT_O =
 uartUART_en ? {4{uartUART_DAT_O[7:0]}} :
 spi0_SPI_en ? spi0_SPI_DAT_O :
-spi1_SPI_en ? spi1_SPI_DAT_O :
+//spi1_SPI_en ? spi1_SPI_DAT_O :
 gpioGPIO_en ? gpioGPIO_DAT_O :
 uart_debugUART_en ? {4{uart_debugUART_DAT_O[7:0]}} :
 shaSHA_en ? shaSHA_DAT_O :
-//alinkALINK_en ? alinkALINK_DAT_O :
 twiTWI_en ? twiTWI_DAT_O :
 0;
 assign SHAREDBUS_ERR_O = SHAREDBUS_CYC_I & !(
 (!uartUART_ERR_O & uartUART_en) |
 (!spi0_SPI_ERR_O & spi0_SPI_en) |
-(!spi1_SPI_ERR_O & spi1_SPI_en) |
+//(!spi1_SPI_ERR_O & spi1_SPI_en) |
 (!gpioGPIO_ERR_O & gpioGPIO_en) |
 (!uart_debugUART_ERR_O & uart_debugUART_en) |
 (!shaSHA_ERR_O & shaSHA_en ) |
-//(!alinkALINK_ERR_O & alinkALINK_en ) |
 (!twiTWI_ERR_O & twiTWI_en ) |
 0);
 assign SHAREDBUS_ACK_O =
 uartUART_en ? uartUART_ACK_O :
 spi0_SPI_en ? spi0_SPI_ACK_O :
-spi1_SPI_en ? spi1_SPI_ACK_O :
+//spi1_SPI_en ? spi1_SPI_ACK_O :
 gpioGPIO_en ? gpioGPIO_ACK_O :
 uart_debugUART_en ? uart_debugUART_ACK_O :
 shaSHA_en ? shaSHA_ACK_O :
-//alinkALINK_en ? alinkALINK_ACK_O :
 twiTWI_en ? twiTWI_ACK_O :
 0;
 assign SHAREDBUS_RTY_O =
 uartUART_en ? uartUART_RTY_O :
 spi0_SPI_en ? spi0_SPI_RTY_O :
-spi1_SPI_en ? spi1_SPI_RTY_O :
+//spi1_SPI_en ? spi1_SPI_RTY_O :
 gpioGPIO_en ? gpioGPIO_RTY_O :
 uart_debugUART_en ? uart_debugUART_RTY_O :
 shaSHA_en ? shaSHA_RTY_O :
-//alinkALINK_en ? alinkALINK_RTY_O :
 twiTWI_en ? twiTWI_RTY_O :
 0;
 wire [31:0] superkdf9DEBUG_DAT_I;
@@ -930,7 +925,7 @@ spi
 #(
 .MASTER(1),
 .SLAVE_NUMBER(32'h8),
-.CLOCK_SEL(7),
+.CLOCK_SEL(8),
 .CLKCNT_WIDTH(6),
 .INTERVAL_LENGTH(2),
 .DATA_LENGTH(8),
@@ -968,7 +963,7 @@ spi
 // assign spi0_SPI_INT_O  = 'b0;
 // `endif
 
-wire [31:0] spi1_SPI_DAT_I;
+/*wire [31:0] spi1_SPI_DAT_I;
 assign spi1_SPI_DAT_I = SHAREDBUS_DAT_I[31:0];
 wire [3:0] spi1_SPI_SEL_I;
 assign spi1_SPI_SEL_I = SHAREDBUS_SEL_I;
@@ -977,8 +972,8 @@ spi
 #(
 .MASTER(1),
 .SLAVE_NUMBER(32'h8),
-.CLOCK_SEL(7),
-.CLKCNT_WIDTH(6),
+.CLOCK_SEL(512),
+.CLKCNT_WIDTH(16),
 .INTERVAL_LENGTH(2),
 .DATA_LENGTH(8),
 .SHIFT_DIRECTION(0),
@@ -1003,7 +998,7 @@ spi
 .SS_N_MASTER(spi1_SS_N_MASTER),
 .SCLK_MASTER(spi1_SCLK_MASTER),
 .SPI_INT_O(spi1_SPI_INT_O),
-.CLK_I(clk_i), .RST_I(sys_reset));
+.CLK_I(clk_i), .RST_I(sys_reset));*/
 
 wire [31:0] gpioGPIO_DAT_I;
 assign gpioGPIO_DAT_I = SHAREDBUS_DAT_I[31:0];
@@ -1206,7 +1201,7 @@ assign superkdf9interrupt_n[4] = !uart_debugINTR ;
 assign superkdf9interrupt_n[2] = 1;
 assign superkdf9interrupt_n[5] = !TIME0_INT;
 assign superkdf9interrupt_n[6] = !TIME1_INT;
-assign superkdf9interrupt_n[7] = !spi1_SPI_INT_O;
+assign superkdf9interrupt_n[7] = 1;//!spi1_SPI_INT_O;
 assign superkdf9interrupt_n[8] = 1;
 assign superkdf9interrupt_n[9] = 1;
 assign superkdf9interrupt_n[10] = 1;
@@ -1231,5 +1226,6 @@ assign superkdf9interrupt_n[28] = 1;
 assign superkdf9interrupt_n[29] = 1;
 assign superkdf9interrupt_n[30] = 1;
 assign superkdf9interrupt_n[31] = 1;
-assign INT = ~(&superkdf9interrupt_n) ;
+//assign INT = ~(&superkdf9interrupt_n) ;
+assign INT = spi0_SPI_INT_O;
 endmodule
