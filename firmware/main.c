@@ -30,8 +30,8 @@
 #include "hexdump.c"
 
 #define IDLE_TIME	5	/* Seconds */
-static uint8_t g_pkg[AVA2_P_COUNT];
-static uint8_t g_act[AVA2_P_COUNT];
+static uint8_t g_pkg[HRTO_P_COUNT];
+static uint8_t g_act[HRTO_P_COUNT];
 static int g_module_id = 0;	/* Default ID is 0 */
 static int g_new_stratum = 0;
 static int g_local_work = 0;
@@ -42,7 +42,7 @@ static uint32_t g_nonce2_range = 0xffffffff;
 
 #define RET_RINGBUFFER_SIZE_RX 16
 #define RET_RINGBUFFER_MASK_RX (RET_RINGBUFFER_SIZE_RX-1)
-static uint8_t ret_buf[RET_RINGBUFFER_SIZE_RX][AVA2_P_DATA_LEN];
+static uint8_t ret_buf[RET_RINGBUFFER_SIZE_RX][HRTO_P_DATA_LEN];
 static volatile unsigned int ret_produce = 0;
 static volatile unsigned int ret_consume = 0;
 
@@ -62,10 +62,10 @@ static void encode_pkg(uint8_t *p, int type, uint8_t *buf, unsigned int len)
 	uint16_t crc;
 	uint8_t *data;
 
-	memset(p, 0, AVA2_P_COUNT);
+	memset(p, 0, HRTO_P_COUNT);
 
-	p[0] = AVA2_H1;
-	p[1] = AVA2_H2;
+	p[0] = HRTO_H1;
+	p[1] = HRTO_H2;
 
 	p[2] = type;
 	p[3] = 1;
@@ -75,12 +75,12 @@ static void encode_pkg(uint8_t *p, int type, uint8_t *buf, unsigned int len)
 	memcpy(data + 28, &g_module_id, 4); /* Attach the module_id at end */
 
 	switch(type) {
-	case AVA2_P_ACKDETECT:
-	case AVA2_P_NONCE:
-	case AVA2_P_TEST_RET:
+	case HRTO_P_ACKDETECT:
+	case HRTO_P_NONCE:
+	case HRTO_P_TEST_RET:
 		memcpy(data, buf, len);
 		break;
-	case AVA2_P_STATUS:
+	case HRTO_P_STATUS:
 		tmp = read_temp0() << 16 | read_temp1();
 		memcpy(data + 0, &tmp, 4);
 
@@ -102,16 +102,16 @@ static void encode_pkg(uint8_t *p, int type, uint8_t *buf, unsigned int len)
 		break;
 	}
 
-	crc = crc16(data, AVA2_P_DATA_LEN);
-	p[AVA2_P_COUNT - 2] = crc & 0x00ff;
-	p[AVA2_P_COUNT - 1] = (crc & 0xff00) >> 8;
+	crc = crc16(data, HRTO_P_DATA_LEN);
+	p[HRTO_P_COUNT - 2] = crc & 0x00ff;
+	p[HRTO_P_COUNT - 1] = (crc & 0xff00) >> 8;
 }
 
 void send_pkg(int type, uint8_t *buf, unsigned int len)
 {
 	debug32("Send: %d\n", type);
 	encode_pkg(g_act, type, buf, len);
-	uart_nwrite((char *)g_act, AVA2_P_COUNT);
+	uart_nwrite((char *)g_act, HRTO_P_COUNT);
 }
 
 static void polling()
@@ -119,7 +119,7 @@ static void polling()
 	uint8_t *data;
 
 	if (ret_consume == ret_produce) {
-		send_pkg(AVA2_P_STATUS, NULL, 0);
+		send_pkg(HRTO_P_STATUS, NULL, 0);
 
 		g_local_work = 0;
 		g_hw_work = 0;
@@ -128,7 +128,7 @@ static void polling()
 
 	data = ret_buf[ret_consume];
 	ret_consume = (ret_consume + 1) & RET_RINGBUFFER_MASK_RX;
-	send_pkg(AVA2_P_NONCE, data, AVA2_P_DATA_LEN - 4);
+	send_pkg(HRTO_P_NONCE, data, HRTO_P_DATA_LEN - 4);
 	return;
 }
 
@@ -146,10 +146,10 @@ static int decode_pkg(uint8_t *p, struct mm_work *mw)
 
 	debug32("Decode: %d %d/%d\n", p[2], idx, cnt);
 
-	expected_crc = (p[AVA2_P_COUNT - 1] & 0xff) |
-		((p[AVA2_P_COUNT - 2] & 0xff) << 8);
+	expected_crc = (p[HRTO_P_COUNT - 1] & 0xff) |
+		((p[HRTO_P_COUNT - 2] & 0xff) << 8);
 
-	actual_crc = crc16(data, AVA2_P_DATA_LEN);
+	actual_crc = crc16(data, HRTO_P_DATA_LEN);
 	if(expected_crc != actual_crc) {
 		debug32("PKG: CRC failed (W %08x, R %08x)\n",
 			expected_crc, actual_crc);
@@ -158,11 +158,11 @@ static int decode_pkg(uint8_t *p, struct mm_work *mw)
 
 	timer_set(0, IDLE_TIME);
 	switch (p[2]) {
-	case AVA2_P_DETECT:
+	case HRTO_P_DETECT:
 		g_new_stratum = 0;
 		alink_flush_fifo();
 		break;
-	case AVA2_P_STATIC:
+	case HRTO_P_STATIC:
 		g_new_stratum = 0;
 		alink_flush_fifo();
 		memcpy(&mw->coinbase_len, data, 4);
@@ -182,26 +182,28 @@ static int decode_pkg(uint8_t *p, struct mm_work *mw)
 			mw->diff,
 			mw->pool_no);
 		break;
-	case AVA2_P_JOB_ID:
+	case HRTO_P_JOB_ID:
 		memcpy(mw->job_id, data, 4);
 		hexdump(mw->job_id, 4);
 		break;
-	case AVA2_P_COINBASE:
+	case HRTO_P_COINBASE:
 		if (idx == 1)
 			memset(mw->coinbase, 0, sizeof(mw->coinbase));
-		memcpy(mw->coinbase + (idx - 1) * AVA2_P_DATA_LEN, data, AVA2_P_DATA_LEN);
+		memcpy(mw->coinbase + (idx - 1) * HRTO_P_DATA_LEN, data, HRTO_P_DATA_LEN);
 		break;
-	case AVA2_P_MERKLES:
-		memcpy(mw->merkles[idx - 1], data, AVA2_P_DATA_LEN);
+	case HRTO_P_MERKLES:
+		memcpy(mw->merkles[idx - 1], data, HRTO_P_DATA_LEN);
 		break;
-	case AVA2_P_HEADER:
-		memcpy(mw->header + (idx - 1) * AVA2_P_DATA_LEN, data, AVA2_P_DATA_LEN);
+	case HRTO_P_HEADER:
+		memcpy(mw->header + (idx - 1) * HRTO_P_DATA_LEN, data, HRTO_P_DATA_LEN);
 		break;
-	case AVA2_P_POLLING:
-		memcpy(&tmp, data + 28, 4);
-		debug32("ID: %d-%d\n", g_module_id, tmp);
-		if (g_module_id == tmp)
-			polling();
+	case HRTO_P_POLLING:
+//		memcpy(&tmp, data + 28, 4);
+//		debug32("ID: %d-%d\n", g_module_id, tmp);
+//		if (g_module_id == tmp)
+//			polling();
+		
+		polling();
 
 		memcpy(&tmp, data + 24, 4);
 		if (tmp) {
@@ -215,36 +217,37 @@ static int decode_pkg(uint8_t *p, struct mm_work *mw)
 			alink_flush_fifo();
 		}
 		break;
-	case AVA2_P_REQUIRE:
+	case HRTO_P_REQUIRE:
 		break;
-	case AVA2_P_SET:
+	case HRTO_P_SET:
 		memcpy(&tmp, data, 4);
 		adjust_fan(tmp);
-		memcpy(&tmp, data + 4, 4);
-		set_voltage(tmp);
-		memcpy(&tmp, data + 8, 4);
-		set_asic_freq(tmp);
+//		memcpy(&tmp, data + 4, 4);
+//		set_voltage(tmp);
+//		memcpy(&tmp, data + 8, 4);
+//		set_asic_freq(tmp);
 
 		memcpy(&g_nonce2_offset, data + 12, 4);
 		memcpy(&g_nonce2_range, data + 16, 4);
 
-		mw->nonce2 = g_nonce2_offset + (g_nonce2_range / AVA2_DEFAULT_MODULES) * g_module_id;
+//		mw->nonce2 = g_nonce2_offset + (g_nonce2_range / AVA2_DEFAULT_MODULES) * g_module_id;
+		mw->nonce2 = g_nonce2_offset;
 		alink_flush_fifo();
 
 		g_new_stratum = 1;
 		break;
-	case AVA2_P_TARGET:
-		memcpy(mw->target, data, AVA2_P_DATA_LEN);
+	case HRTO_P_TARGET:
+		memcpy(mw->target, data, HRTO_P_DATA_LEN);
 		break;
-	case AVA2_P_TEST:
-		memcpy(&tmp, data + 28, 4);
-		if (g_module_id == tmp) {
-			set_voltage(0x8a00);
-			led(1);
-			alink_asic_test();	/* Test ASIC */
-			led(0);
-			set_voltage(0x8f00);
-		}
+	case HRTO_P_TEST:
+//		memcpy(&tmp, data + 28, 4);
+//		if (g_module_id == tmp) {
+//			set_voltage(0x8a00);
+//			led(1);
+//			alink_asic_test();	/* Test ASIC */
+//			led(0);
+//			set_voltage(0x8f00);
+//		}
 		break;
 	default:
 		break;
@@ -301,7 +304,7 @@ static int get_pkg(struct mm_work *mw)
 		if (start)
 			g_pkg[count++] = last;
 
-		if (count == AVA2_P_COUNT) {
+		if (count == HRTO_P_COUNT) {
 			pre_last = last = 0;
 
 			start = 0;
@@ -309,24 +312,24 @@ static int get_pkg(struct mm_work *mw)
 
 			if (decode_pkg(g_pkg, mw)) {
 #ifdef CFG_ENABLE_ACK
-				send_pkg(AVA2_P_NAK, NULL, 0);
+				send_pkg(HRTO_P_NAK, NULL, 0);
 #endif
 				return 1;
 			} else {
 				/* Here we send back PKG if necessary */
 #ifdef CFG_ENABLE_ACK
-				send_pkg(AVA2_P_ACK, NULL, 0);
+				send_pkg(HRTO_P_ACK, NULL, 0);
 #endif
 				switch (g_pkg[2]) {
-				case AVA2_P_DETECT:
+				case HRTO_P_DETECT:
 					memcpy(&tmp, g_pkg + 5 + 28, 4);
 					if (g_module_id == tmp)
-						send_pkg(AVA2_P_ACKDETECT, (uint8_t *)MM_VERSION, MM_VERSION_LEN);
+						send_pkg(HRTO_P_ACKDETECT, (uint8_t *)MM_VERSION, MM_VERSION_LEN);
 					break;
-				case AVA2_P_REQUIRE:
+				case HRTO_P_REQUIRE:
 					memcpy(&tmp, g_pkg + 5 + 28, 4);
 					if (g_module_id == tmp)
-						send_pkg(AVA2_P_STATUS, NULL, 0);
+						send_pkg(HRTO_P_STATUS, NULL, 0);
 					break;
 				default:
 					break;
@@ -334,7 +337,7 @@ static int get_pkg(struct mm_work *mw)
 			}
 		}
 
-		if (pre_last == AVA2_H1 && last == AVA2_H2 && !start) {
+		if (pre_last == HRTO_H1 && last == HRTO_H2 && !start) {
 			g_pkg[0] = pre_last;
 			g_pkg[1] = last;
 			start = 1;
@@ -384,7 +387,7 @@ int main1(int argv, char **argc)
 			g_new_stratum = 0;
 			alink_asic_idle();
 			adjust_fan(0x1ff);
-			set_voltage(0x8f00);
+//			set_voltage(0x8f00);
 		}
 
 		if (!g_new_stratum)

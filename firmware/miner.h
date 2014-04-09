@@ -31,13 +31,13 @@ struct work {
 	uint8_t e2[4];
 	uint8_t a0[4];
 	uint8_t a1[4];
-	uint8_t data[44]; 	/* midstate[32] + data[12] */
-	uint8_t header[128]; 	/* Block header */
+	uint8_t data[44];     /* midstate[32] + data[12] */
+	uint8_t header[128];  /* Block header */
 };
 
 struct result {
-	uint8_t miner_id[4];      /* The miner ID */
-	uint8_t	task_id[8];	 /* Same with work task_id */
+	uint8_t miner_id[4];  /* The miner ID */
+	uint8_t	task_id[8];   /* Same with work task_id */
 	uint8_t	timeout[4];
 	uint8_t nonce[4];
 };
@@ -46,7 +46,7 @@ struct mm_work {
 	uint8_t job_id[4];
 
 	size_t coinbase_len;
-	uint8_t coinbase[AVA2_P_COINBASE_SIZE];
+	uint8_t coinbase[HRTO_P_COINBASE_SIZE];
 
 	uint32_t nonce2;
 	int nonce2_offset;
@@ -54,7 +54,7 @@ struct mm_work {
 
 	int merkle_offset;
 	int nmerkles;
-	uint8_t merkles[AVA2_P_MERKLES_COUNT][32];
+	uint8_t merkles[HRTO_P_MERKLES_COUNT][32];
 
 	uint8_t header[128];
 
