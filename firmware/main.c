@@ -32,7 +32,7 @@
 #define IDLE_TIME	5	/* Seconds */
 static uint8_t g_pkg[HRTO_P_COUNT];
 static uint8_t g_act[HRTO_P_COUNT];
-static int g_module_id = 0;	/* Default ID is 0 */
+//static int g_module_id = 0;	/* Default ID is 0 */
 static int g_new_stratum = 0;
 static int g_local_work = 0;
 static int g_hw_work = 0;
@@ -72,7 +72,7 @@ static void encode_pkg(uint8_t *p, int type, uint8_t *buf, unsigned int len)
 	p[4] = 1;
 
 	data = p + 5;
-	memcpy(data + 28, &g_module_id, 4); /* Attach the module_id at end */
+//	memcpy(data + 28, &g_module_id, 4); /* Attach the module_id at end */
 
 	switch(type) {
 	case HRTO_P_ACKDETECT:
@@ -87,10 +87,10 @@ static void encode_pkg(uint8_t *p, int type, uint8_t *buf, unsigned int len)
 		tmp = read_fan0() << 16 | read_fan1();
 		memcpy(data + 4, &tmp, 4);
 
-		tmp = get_asic_freq();
-		memcpy(data + 8, &tmp, 4);
-		tmp = get_voltage();
-		memcpy(data + 12, &tmp, 4);
+//		tmp = get_asic_freq();
+//		memcpy(data + 8, &tmp, 4);
+//		tmp = get_voltage();
+//		memcpy(data + 12, &tmp, 4);
 
 		memcpy(data + 16, &g_local_work, 4);
 		memcpy(data + 20, &g_hw_work, 4);
@@ -231,7 +231,7 @@ static int decode_pkg(uint8_t *p, struct mm_work *mw)
 		memcpy(&g_nonce2_range, data + 16, 4);
 
 //		mw->nonce2 = g_nonce2_offset + (g_nonce2_range / AVA2_DEFAULT_MODULES) * g_module_id;
-		mw->nonce2 = g_nonce2_offset;
+		mw->nonce2 = g_nonce2_offset + g_nonce2_range;
 		alink_flush_fifo();
 
 		g_new_stratum = 1;
@@ -323,13 +323,15 @@ static int get_pkg(struct mm_work *mw)
 				switch (g_pkg[2]) {
 				case HRTO_P_DETECT:
 					memcpy(&tmp, g_pkg + 5 + 28, 4);
-					if (g_module_id == tmp)
-						send_pkg(HRTO_P_ACKDETECT, (uint8_t *)MM_VERSION, MM_VERSION_LEN);
+//					if (g_module_id == tmp)
+//						send_pkg(HRTO_P_ACKDETECT, (uint8_t *)MM_VERSION, MM_VERSION_LEN);
+					send_pkg(HRTO_P_ACKDETECT, (uint8_t *)MM_VERSION, MM_VERSION_LEN);
 					break;
 				case HRTO_P_REQUIRE:
 					memcpy(&tmp, g_pkg + 5 + 28, 4);
-					if (g_module_id == tmp)
-						send_pkg(HRTO_P_STATUS, NULL, 0);
+//					if (g_module_id == tmp)
+//						send_pkg(HRTO_P_STATUS, NULL, 0);
+					send_pkg(HRTO_P_STATUS, NULL, 0);
 					break;
 				default:
 					break;
@@ -364,11 +366,11 @@ int main1(int argv, char **argc)
 	irq_setmask(0);
 	irq_enable(1);
 
-	g_module_id = read_module_id();
+//	g_module_id = read_module_id();
 
 	uart_init();
 	uart1_init();
-	debug32("%d:MM-%s\n", g_module_id, MM_VERSION);
+	debug32("MM-%s\n", MM_VERSION);
 	led(0);
 
 	timer_set(0, IDLE_TIME);
