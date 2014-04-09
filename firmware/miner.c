@@ -130,21 +130,21 @@ static void rev(unsigned char *s, size_t l)
 	}
 }
 
-/* Total: 4W + 19W = 23W
- * TaskID_H:1, TASKID_L:1, STEP:1, TIMEOUT:1,
- * CLK_CFG:2, a2, Midsate:8, e0, e1, e2, a0, a1, Data:3
- */
-static void calc_prepare(struct work *work, uint8_t *buf)
-{
-	uint32_t precalc[6];
-	sha256_precalc(buf, buf + 32, 12, (uint8_t *)precalc);
-	memcpy(work->a0, precalc + 0, 4);
-	memcpy(work->a1, precalc + 1, 4);
-	memcpy(work->a2, precalc + 2, 4);
-	memcpy(work->e0, precalc + 3, 4);
-	memcpy(work->e1, precalc + 4, 4);
-	memcpy(work->e2, precalc + 5, 4);
-}
+///* Total: 4W + 19W = 23W
+// * TaskID_H:1, TASKID_L:1, STEP:1, TIMEOUT:1,
+// * CLK_CFG:2, a2, Midsate:8, e0, e1, e2, a0, a1, Data:3
+// */
+//static void calc_prepare(struct work *work, uint8_t *buf)
+//{
+//	uint32_t precalc[6];
+//	sha256_precalc(buf, buf + 32, 12, (uint8_t *)precalc);
+//	memcpy(work->a0, precalc + 0, 4);
+//	memcpy(work->a1, precalc + 1, 4);
+//	memcpy(work->a2, precalc + 2, 4);
+//	memcpy(work->e0, precalc + 3, 4);
+//	memcpy(work->e1, precalc + 4, 4);
+//	memcpy(work->e2, precalc + 5, 4);
+//}
 
 void miner_gen_nonce2_work(struct mm_work *mw, uint32_t nonce2, struct work *work)
 {
@@ -179,13 +179,13 @@ void miner_gen_nonce2_work(struct mm_work *mw, uint32_t nonce2, struct work *wor
 	rev(work_t + 32, 12);
 	memcpy(work->data, work_t, 44);
 
-	calc_prepare(work, work->data);
-	memcpy((uint8_t *)(&tmp32), work->a1, 4);
-	memcpy((uint8_t *)(&tmp32), work->a0, 4);
-	memcpy((uint8_t *)(&tmp32), work->e2, 4);
-	memcpy((uint8_t *)(&tmp32), work->e1, 4);
-	memcpy((uint8_t *)(&tmp32), work->e0, 4);
-	memcpy((uint8_t *)(&tmp32), work->a2, 4);
+//	calc_prepare(work, work->data);
+//	memcpy((uint8_t *)(&tmp32), work->a1, 4);
+//	memcpy((uint8_t *)(&tmp32), work->a0, 4);
+//	memcpy((uint8_t *)(&tmp32), work->e2, 4);
+//	memcpy((uint8_t *)(&tmp32), work->e1, 4);
+//	memcpy((uint8_t *)(&tmp32), work->e0, 4);
+//	memcpy((uint8_t *)(&tmp32), work->a2, 4);
 }
 
 int fulltest(const unsigned char *hash, const unsigned char *target)
