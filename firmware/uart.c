@@ -24,13 +24,36 @@ static volatile unsigned int rx_consume;
 
 static struct lm32_uart *uart = (struct lm32_uart *)UART0_BASE;
 
+static void uart_write32(unsigned int data)
+{
+	int i;
+	unsigned char * p = (unsigned char *)&data;
+	for(i=0;i<4;i++){
+		
+		uart1_write(p[i]);
+	}
+}
+
+
+void uart_test(void)
+{
+	/*unsigned char sta;
+	sta = readb(&uart->lsr);
+	uart1_write(sta);
+	sta = readb(&uart->rxtx);
+	uart1_write(sta);*/
+	unsigned int mask;
+    __asm__ __volatile__("rcsr %0, IM" : "=r" (mask));
+	uart_write32(mask);
+	
+}
+
 void uart_isr(void)
 {
 	while (readb(&uart->lsr) & LM32_UART_LSR_DR) {
 		rx_buf[rx_produce] = readb(&uart->rxtx);
 		rx_produce = (rx_produce + 1) & UART_RINGBUFFER_MASK_RX;
 	}
-
 	irq_ack(IRQ_UART);
 }
 
@@ -38,7 +61,6 @@ void uart_isr(void)
 char uart_read(void)
 {
 	char c;
-
 	while (rx_consume == rx_produce);
 	c = rx_buf[rx_consume];
 	rx_consume = (rx_consume + 1) & UART_RINGBUFFER_MASK_RX;
@@ -111,12 +133,32 @@ void uart_nwrite(const char *s, unsigned int l)
 
 
 #ifdef DEBUG
+#define UART1_RINGBUFFER_SIZE_RX 16
+#define UART1_RINGBUFFER_MASK_RX (UART1_RINGBUFFER_SIZE_RX-1)
+
+//UART1 rx buffer is limited up to 16 bytes, DO NOT send data more than that at one time.
+static char rx_dbg_buf[UART1_RINGBUFFER_SIZE_RX];
+static volatile unsigned int rx_dbg_produce;
+static volatile unsigned int rx_dbg_consume;
+
 static struct lm32_uart *uart1 = (struct lm32_uart *)UART1_BASE;
 
 void uart1_init(void)
-{
+{	
 	uint8_t value;
+	uint32_t mask;
+		
+	rx_dbg_produce = 0;
+	rx_dbg_consume = 0;
 
+	irq_ack(IRQ_UARTDEBUG);
+
+	/* enable UART interrupts */
+	writeb(LM32_UART_IER_RBRI, &uart1->ier);
+	mask = irq_getmask();
+	mask |= IRQ_UARTDEBUG;
+	irq_setmask(mask);
+	
 	/* Line control 8 bit, 1 stop, no parity */
 	writeb(LM32_UART_LCR_8BIT, &uart1->lcr);
 
@@ -128,7 +170,6 @@ void uart1_init(void)
 	writeb(value, &uart1->divl);
 	value = (CPU_FREQUENCY / UART_BAUD_RATE) >> 8;
 	writeb(value, &uart1->divh);
-
 }
 
 void uart1_write(char c)
@@ -147,6 +188,64 @@ void uart1_write(char c)
 
 	irq_setmask(oldmask);
 }
+
+void uart1_writeb(unsigned char b)
+{
+	unsigned int oldmask;
+
+	oldmask = irq_getmask();
+	irq_setmask(0);
+
+	while (!(readb(&uart1->lsr) & (LM32_UART_LSR_THRR | LM32_UART_LSR_TEMT)))
+		;
+	writeb(b, &uart1->rxtx);
+
+	irq_setmask(oldmask);
+
+}
+
+void uart1_writew(unsigned short w)
+{
+	unsigned char i;
+	unsigned char * b = (unsigned char *)&w;
+	for(i=0;i<2;i++){
+		uart1_writeb(b[i]);
+	}
+}
+
+void uart1_writel(unsigned int l)
+{
+	unsigned char i;
+	unsigned char * b = (unsigned char *)&l;
+	for(i=0;i<4;i++){
+		uart1_writeb(b[i]);
+	}
+}
+
+void uart1_isr(void)
+{
+	while (readb(&uart1->lsr) & LM32_UART_LSR_DR) {
+		rx_dbg_buf[rx_dbg_produce] = readb(&uart1->rxtx);
+		rx_dbg_produce = (rx_dbg_produce + 1) & UART1_RINGBUFFER_MASK_RX;
+	}
+	irq_ack(IRQ_UARTDEBUG);
+}
+
+/* Do not use in interrupt handlers! */
+char uart1_read(void)
+{
+	char c;
+	while (rx_dbg_consume == rx_dbg_produce);
+	c = rx_dbg_buf[rx_dbg_consume];
+	rx_dbg_consume = (rx_dbg_consume + 1) & UART1_RINGBUFFER_MASK_RX;
+	return c;
+}
+
+int uart1_read_nonblock(void)
+{
+	return (rx_dbg_consume != rx_dbg_produce);
+}
+
 
 void uart1_puts(const char *s)
 {

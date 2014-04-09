@@ -23,6 +23,7 @@
 #include "twipwm.h"
 #include "shifter.h"
 #include "timer.h"
+#include "spi.h"
 #include "protocol.h"
 #include "crc.h"
 
@@ -344,7 +345,7 @@ static int get_pkg(struct mm_work *mw)
 	return 0;
 }
 
-int main(int argv, char **argc)
+int main1(int argv, char **argc)
 {
 	struct mm_work mm_work;
 	struct work work;
@@ -363,6 +364,7 @@ int main(int argv, char **argc)
 	g_module_id = read_module_id();
 
 	uart_init();
+	uart1_init();
 	debug32("%d:MM-%s\n", g_module_id, MM_VERSION);
 	led(0);
 
@@ -374,6 +376,7 @@ int main(int argv, char **argc)
 	set_voltage(0x8f00);
 
 	while (1) {
+		uart1_write((char)0x55);
 		get_pkg(&mm_work);
 
 		wdg_feed((CPU_FREQUENCY / 1000) * 2);
@@ -405,5 +408,27 @@ int main(int argv, char **argc)
 		}
 	}
 
+	return 0;
+}
+
+int main(int argv,char * * argc)
+{
+	unsigned char c = 0x00;
+	irq_setmask(0);
+	irq_enable(1);
+	uart_init();
+	uart1_init();
+	//spi_select(0x01);
+	
+	while(1){
+
+		/*c = uart1_read();
+		spi_write(0x01,c);
+
+		delay(50);*/
+		spi_test(c);
+		delay(50);
+		c++;
+	}
 	return 0;
 }

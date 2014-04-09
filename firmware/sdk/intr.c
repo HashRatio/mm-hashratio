@@ -5,12 +5,15 @@
  * This is free and unencumbered software released into the public domain.
  * For details see the UNLICENSE file at the root of the source tree.
  */
+#include <stdint.h>
+#include "defines.h"
 
 #include "intr.h"
 #include "system_config.h"
 
 #include "uart.h"
 #include "timer.h"
+
 
 void isr(void)
 {
@@ -20,6 +23,9 @@ void isr(void)
 
 	if (irqs & IRQ_UART)
 		uart_isr();
+	
+	if (irqs & IRQ_UARTDEBUG)
+		uart1_isr();
 
 	if (irqs & IRQ_TIMER0)
 		timer0_isr();
