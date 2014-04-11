@@ -26,6 +26,7 @@
 #include "spi.h"
 #include "protocol.h"
 #include "crc.h"
+#include "be200.h"
 
 #include "hexdump.c"
 
@@ -45,6 +46,40 @@ static uint32_t g_nonce2_range = 0xffffffff;
 static uint8_t ret_buf[RET_RINGBUFFER_SIZE_RX][AVA2_P_DATA_LEN];
 static volatile unsigned int ret_produce = 0;
 static volatile unsigned int ret_consume = 0;
+
+/*static uint8_t test_data[BUFFER_SIZE] = {
+	0x81, 0x85, 0x65, 0x8c, 0x24, 0x66, 0x21, 0x1d, 
+    0xe2, 0x65, 0xd0, 0xf8, 0xbf, 0xa6, 0x6e, 0xc9, 
+    0xda, 0xff, 0xe2, 0x8b, 0xe3, 0xb3, 0x66, 0xe4,
+    0x43, 0xf3, 0x1f, 0x12, 0xf7, 0x3f, 0xe9, 0xe3, 
+    0x26, 0xd8, 0x6e, 0x20, 0x50, 0x0a, 0x9a, 0x4b, 
+    0x1a, 0x08, 0xfd, 0x2f
+};*/
+static uint8_t test_data[BUFFER_SIZE];
+
+
+void prepare()
+{
+    int8_t i;
+	uint8_t cf=1;
+	for(i=BUFFER_SIZE -1; i>=0; i--)
+	{
+		if(cf)
+		{
+	        test_data[i]++;
+			if(test_data[i] == 0x00)
+				cf = 1;
+			else
+				cf = 0;
+		}
+	}
+	/*for(i=0;i<BUFFER_SIZE;i++)
+	{
+		uart1_write(test_data[i]);
+	}*/
+
+	//uart1_write(test_data[0]);
+}
 
 void delay(unsigned int ms)
 {
@@ -411,24 +446,105 @@ int main1(int argv, char **argc)
 	return 0;
 }
 
+void be200_test(const uint16_t idx)
+{
+    uint8_t ready;
+	uint8_t nonce_mask;
+	uint32_t res;
+    be200_reset(idx);
+	delay(100);
+	//be200_cmd_wr(0x0001,BE200_REG_PLL,0x9D);
+	delay(100);
+	while(1)
+	{
+		if( be200_check_idle(idx))
+		{
+			prepare();
+		    be200_input_task(idx,test_data);
+			be200_start(idx);
+		}
+
+		while(!be200_check_idle(idx))
+		{
+		    ready = be200_get_done(idx,&nonce_mask);
+			if(ready > 0)
+			{
+			    be200_get_result(idx,nonce_mask,&res);
+				be200_dump_register(idx);
+				be200_clear(idx);
+				//return;
+			}
+		}
+		//uart1_write(0xE0);
+	}
+}
+
+
 int main(int argv,char * * argc)
 {
-	unsigned char c = 0x00;
+	//uint8_t mask;
 	irq_setmask(0);
 	irq_enable(1);
 	uart_init();
 	uart1_init();
-	//spi_select(0x01);
 	
-	while(1){
+	
+	//spi_select(0x01);
 
-		/*c = uart1_read();
-		spi_write(0x01,c);
-
-		delay(50);*/
-		spi_test(c);
-		delay(50);
-		c++;
+	uint16_t idx = 0x0001;
+	uint8_t cmd;
+	uint8_t c;
+	while(1)
+	{	
+		cmd = uart1_read();
+		switch(cmd){
+		case 0x01://full test
+			be200_test(idx);
+			break;
+		case 0x02://check status
+			uart1_writeb(be200_cmd_ck(idx));
+			break;
+		case 0x03://start enumrate
+			be200_start(idx);
+			break;
+		case 0x04://set pll
+			be200_cmd_wr(idx,BE200_REG_PLL,0x1D);
+			//delay(100);
+			be200_cmd_wr(idx,BE200_REG_PLL,0x1D);
+			//delay(100);
+			be200_cmd_wr(idx,BE200_REG_PLL,0x9D);
+			//delay(100);
+			c = be200_cmd_rd(idx,BE200_REG_PLL);
+			uart1_writeb(c);
+			break;
+		case 0x05://soft reset
+			be200_cmd_rst(idx);
+			break;
+		case 0x06:// read register 45
+			uart1_writeb(be200_cmd_rd(idx,45));;
+			break;
+		case 0x07://write register 22
+			be200_cmd_wr(idx,22,0x55);
+			break;
+		case 0x08://
+			uart1_writeb(be200_cmd_rd(idx,22));;
+			break;
+		case 0x09:
+			be200_clear(idx);
+			break;
+		case 0x0A:
+			be200_dump_register(idx);
+			break;
+		case 0x0B:
+			prepare();
+			break;
+		case 0x0C:
+			be200_input_task(idx,test_data);
+			break;
+			
+		}
 	}
+
+	
 	return 0;
 }
