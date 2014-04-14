@@ -352,11 +352,15 @@ endmodule
 module mm (
   ex_clk_i
 , ex_clk_o
+
 , uartSIN
 , uartSOUT
+
 , INT
+
 , uartSIN_led
 , uartSOUT_led
+
 // , NONCE_led
 
 , uartRXRDY_N
@@ -816,14 +820,14 @@ assign SHAREDBUS_DAT_O =
 uartUART_en ? {4{uartUART_DAT_O[7:0]}} :
 spi0_SPI_en ? spi0_SPI_DAT_O :
 spi1_SPI_en ? spi1_SPI_DAT_O :
-spi2_SPI_en ? spi1_SPI_DAT_O :
-spi3_SPI_en ? spi1_SPI_DAT_O :
-spi4_SPI_en ? spi1_SPI_DAT_O :
-spi5_SPI_en ? spi1_SPI_DAT_O :
-spi6_SPI_en ? spi1_SPI_DAT_O :
-spi7_SPI_en ? spi1_SPI_DAT_O :
-spi8_SPI_en ? spi1_SPI_DAT_O :
-spi9_SPI_en ? spi1_SPI_DAT_O :
+spi2_SPI_en ? spi2_SPI_DAT_O :
+spi3_SPI_en ? spi3_SPI_DAT_O :
+spi4_SPI_en ? spi4_SPI_DAT_O :
+spi5_SPI_en ? spi5_SPI_DAT_O :
+spi6_SPI_en ? spi6_SPI_DAT_O :
+spi7_SPI_en ? spi7_SPI_DAT_O :
+spi8_SPI_en ? spi8_SPI_DAT_O :
+spi9_SPI_en ? spi9_SPI_DAT_O :
 gpioGPIO_en ? gpioGPIO_DAT_O :
 uart_debugUART_en ? {4{uart_debugUART_DAT_O[7:0]}} :
 shaSHA_en ? shaSHA_DAT_O :
@@ -1033,7 +1037,7 @@ assign uartUART_SEL_I = ((
 	SHAREDBUS_ADR_I[1:0] == 2'b10) ? SHAREDBUS_SEL_I[1] : SHAREDBUS_SEL_I[0])));
 assign uartUART_en = (SHAREDBUS_ADR_I[31:4] == 28'b1000000000000000000000010000);//Device address 0x80000100
 wire uartSOUT_w ;
-assign uartSOUT     = uartSOUT_w ? 1'bz : 1'b0;
+assign uartSOUT = uartSOUT_w ? 1'bz : 1'b0;
 
 `ifndef UART_PRO_EN
 uart_core
@@ -1705,6 +1709,6 @@ assign superkdf9interrupt_n[28] = 1;
 assign superkdf9interrupt_n[29] = 1;
 assign superkdf9interrupt_n[30] = 1;
 assign superkdf9interrupt_n[31] = 1;
-//assign INT = ~(&superkdf9interrupt_n) ;
-assign INT = spi0_SPI_INT_O;
+assign INT = ~(&superkdf9interrupt_n) ;
+//assign INT = spi0_SPI_INT_O;
 endmodule

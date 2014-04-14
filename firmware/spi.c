@@ -8,8 +8,18 @@
 #include "io.h"
 #include "uart.h"
 
-static struct lm32_spi *spi[2] = { \
-(struct lm32_spi *)SPI0_BASE, (struct lm32_spi *)SPI1_BASE};
+static struct lm32_spi *spi[10] = {
+(struct lm32_spi *)SPI0_BASE, 
+(struct lm32_spi *)SPI1_BASE,
+(struct lm32_spi *)SPI2_BASE,
+(struct lm32_spi *)SPI3_BASE,
+(struct lm32_spi *)SPI4_BASE,
+(struct lm32_spi *)SPI5_BASE,
+(struct lm32_spi *)SPI6_BASE,
+(struct lm32_spi *)SPI7_BASE,
+(struct lm32_spi *)SPI8_BASE,
+(struct lm32_spi *)SPI9_BASE,
+};
 
 //static struct lm32_spi *spi1 = (struct lm32_spi *)SPI1_BASE;
 static struct lm32_spi * spi0 = (struct lm32_spi *)SPI0_BASE;
