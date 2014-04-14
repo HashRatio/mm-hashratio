@@ -64,53 +64,53 @@ int alink_rxbuf_empty()
 
 int alink_send_work(struct work *w)
 {
-	uint32_t tmp;
-	int i;
-
-	/* The chip configure information */
-	memcpy((uint8_t *)(&tmp), w->task_id, 4);
-	writel(tmp, &alink->tx);
-
-	memcpy((uint8_t *)(&tmp), w->task_id + 4, 4);
-	writel(tmp, &alink->tx);
-
-	memcpy((uint8_t *)(&tmp), w->step, 4);
-	writel(tmp, &alink->tx);
-
-	memcpy((uint8_t *)(&tmp), w->timeout, 4);
-	writel(tmp, &alink->tx);
-
-	memcpy((uint8_t *)(&tmp), w->clock, 4);
-	writel(tmp, &alink->tx);
-
-	memcpy((uint8_t *)(&tmp), w->clock + 4, 4);
-	writel(tmp, &alink->tx);
-
-	/* Task data */
-	for (i = 8; i >= 0; i -= 4) {
-		memcpy((uint8_t *)(&tmp), w->data + 32 + i, 4);
-		writel(tmp, &alink->tx);
-	}
-
-	memcpy((uint8_t *)(&tmp), w->a1, 4);
-	writel(tmp, &alink->tx);
-	memcpy((uint8_t *)(&tmp), w->a0, 4);
-	writel(tmp, &alink->tx);
-	memcpy((uint8_t *)(&tmp), w->e2, 4);
-	writel(tmp, &alink->tx);
-	memcpy((uint8_t *)(&tmp), w->e1, 4);
-	writel(tmp, &alink->tx);
-	memcpy((uint8_t *)(&tmp), w->e0, 4);
-	writel(tmp, &alink->tx);
-
-	for (i = 28; i >= 0; i -= 4) {
-		memcpy((uint8_t *)(&tmp), w->data + i, 4);
-		writel(tmp, &alink->tx);
-	}
-
-	memcpy((uint8_t *)(&tmp), w->a2, 4);
-	writel(tmp, &alink->tx);
-
+	//uint32_t tmp;
+	//int i;
+    //
+	///* The chip configure information */
+	//memcpy((uint8_t *)(&tmp), w->task_id, 4);
+	//writel(tmp, &alink->tx);
+    //
+	//memcpy((uint8_t *)(&tmp), w->task_id + 4, 4);
+	//writel(tmp, &alink->tx);
+    //
+	//memcpy((uint8_t *)(&tmp), w->step, 4);
+	//writel(tmp, &alink->tx);
+    //
+	//memcpy((uint8_t *)(&tmp), w->timeout, 4);
+	//writel(tmp, &alink->tx);
+    //
+	//memcpy((uint8_t *)(&tmp), w->clock, 4);
+	//writel(tmp, &alink->tx);
+    //
+	//memcpy((uint8_t *)(&tmp), w->clock + 4, 4);
+	//writel(tmp, &alink->tx);
+    //
+	///* Task data */
+	//for (i = 8; i >= 0; i -= 4) {
+	//	memcpy((uint8_t *)(&tmp), w->data + 32 + i, 4);
+	//	writel(tmp, &alink->tx);
+	//}
+    //
+	//memcpy((uint8_t *)(&tmp), w->a1, 4);
+	//writel(tmp, &alink->tx);
+	//memcpy((uint8_t *)(&tmp), w->a0, 4);
+	//writel(tmp, &alink->tx);
+	//memcpy((uint8_t *)(&tmp), w->e2, 4);
+	//writel(tmp, &alink->tx);
+	//memcpy((uint8_t *)(&tmp), w->e1, 4);
+	//writel(tmp, &alink->tx);
+	//memcpy((uint8_t *)(&tmp), w->e0, 4);
+	//writel(tmp, &alink->tx);
+    //
+	//for (i = 28; i >= 0; i -= 4) {
+	//	memcpy((uint8_t *)(&tmp), w->data + i, 4);
+	//	writel(tmp, &alink->tx);
+	//}
+    //
+	//memcpy((uint8_t *)(&tmp), w->a2, 4);
+	//writel(tmp, &alink->tx);
+    //
 	return 0;
 }
 

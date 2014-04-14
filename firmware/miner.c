@@ -89,15 +89,15 @@ uint32_t get_asic_freq()
 
 void miner_init_work(struct mm_work *mw, struct work *work)
 {
-	int timeout;
-	int asic_freq;
-
-	memcpy(work->task_id, (uint8_t *)(&mw->pool_no), 4);
-	memcpy(work->task_id + 4, (uint8_t *)(&work->nonce2), 4);
-
-	timeout = 4294967 / (g_asic_freq * ASIC_COUNT); /* Time in ms */
-	timeout *= CPU_FREQUENCY / 1000;     /* Time in cpu clock */
-	memcpy(work->timeout, &timeout, 4);
+	//int timeout;
+	//int asic_freq;
+    //
+	//memcpy(work->task_id, (uint8_t *)(&mw->pool_no), 4);
+	//memcpy(work->task_id + 4, (uint8_t *)(&work->nonce2), 4);
+    //
+	//timeout = 4294967 / (g_asic_freq * ASIC_COUNT); /* Time in ms */
+	//timeout *= CPU_FREQUENCY / 1000;     /* Time in cpu clock */
+	//memcpy(work->timeout, &timeout, 4);
 
 //	asic_freq = g_asic_freq * 32 / 50 + 0x7FE0;
 //	work->clock[0] = (asic_freq & 0xff00) >> 8;
