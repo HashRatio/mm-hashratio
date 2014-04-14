@@ -10,7 +10,11 @@
 #define _SYSTEM_CONFIG_H_
 
 #define HRTO_DEFAULT_MINERS   80
-#define AVA2_DEFAULT_MODULES  3
+
+// for test build
+#define AVA2_DEFAULT_MODULES 3
+#define AVA2_DEFAULT_MINERS  20
+#define AVA2_P_TEST_RET   26
 
 #define ASIC_FREQUENCY	1500
 #define ASIC_COUNT	7
