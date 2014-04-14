@@ -285,7 +285,6 @@ static int get_pkg(struct mm_work *mw)
 {
 	static char pre_last, last;
 	static int start = 0, count = 2;
-	int tmp;
 
 	while (1) {
 		if (!uart_read_nonblock() && !start)
