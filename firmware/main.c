@@ -92,11 +92,11 @@ static void encode_pkg(uint8_t *p, int type, uint8_t *buf, unsigned int len)
 //		tmp = get_voltage();
 //		memcpy(data + 12, &tmp, 4);
 
-		memcpy(data + 16, &g_local_work, 4);
-		memcpy(data + 20, &g_hw_work, 4);
+		memcpy(data + 8,  &g_local_work, 4);
+		memcpy(data + 12, &g_hw_work,    4);
 
-		tmp = read_power_good();
-		memcpy(data + 24, &tmp, 4);
+//		tmp = read_power_good();
+//		memcpy(data + 24, &tmp, 4);
 		break;
 	default:
 		break;
@@ -320,15 +320,15 @@ static int get_pkg(struct mm_work *mw)
 #ifdef CFG_ENABLE_ACK
 				send_pkg(HRTO_P_ACK, NULL, 0);
 #endif
-				switch (g_pkg[2]) {
+				switch (g_pkg[2]/* pkg type */) {
 				case HRTO_P_DETECT:
-					memcpy(&tmp, g_pkg + 5 + 28, 4);
+//					memcpy(&tmp, g_pkg + 5 + 28, 4);
 //					if (g_module_id == tmp)
 //						send_pkg(HRTO_P_ACKDETECT, (uint8_t *)MM_VERSION, MM_VERSION_LEN);
 					send_pkg(HRTO_P_ACKDETECT, (uint8_t *)MM_VERSION, MM_VERSION_LEN);
 					break;
 				case HRTO_P_REQUIRE:
-					memcpy(&tmp, g_pkg + 5 + 28, 4);
+//					memcpy(&tmp, g_pkg + 5 + 28, 4);
 //					if (g_module_id == tmp)
 //						send_pkg(HRTO_P_STATUS, NULL, 0);
 					send_pkg(HRTO_P_STATUS, NULL, 0);
