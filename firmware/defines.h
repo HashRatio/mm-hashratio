@@ -11,6 +11,7 @@
 
 #define DEBUG 1
 #ifdef DEBUG
+
 void hexdump(const uint8_t *p, unsigned int len);
 
 #include "uart.h"

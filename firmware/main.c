@@ -26,8 +26,11 @@
 #include "spi.h"
 #include "protocol.h"
 #include "crc.h"
+#include "be200.h"
+#include "be200_test.h"
 
 #include "hexdump.c"
+#include "utils.h"
 
 #define IDLE_TIME	5	/* Seconds */
 static uint8_t g_pkg[HRTO_P_COUNT];
@@ -45,16 +48,6 @@ static uint32_t g_nonce2_range = 0xffffffff;
 static uint8_t ret_buf[RET_RINGBUFFER_SIZE_RX][HRTO_P_DATA_LEN];
 static volatile unsigned int ret_produce = 0;
 static volatile unsigned int ret_consume = 0;
-
-void delay(unsigned int ms)
-{
-	unsigned int i;
-
-	while (ms && ms--) {
-		for (i = 0; i < CPU_FREQUENCY / 1000 / 5; i++)
-			__asm__ __volatile__("nop");
-	}
-}
 
 static void encode_pkg(uint8_t *p, int type, uint8_t *buf, unsigned int len)
 {
@@ -411,6 +404,7 @@ int main1(int argv, char **argc)
 			if (!g_new_stratum)
 				break;
 		}
+		
 	}
 
 	return 0;
@@ -418,22 +412,21 @@ int main1(int argv, char **argc)
 
 int main(int argv,char * * argc)
 {
-	unsigned char c = 0x00;
+	uint16_t idx;
 	irq_setmask(0);
 	irq_enable(1);
 	uart_init();
 	uart1_init();
-	//spi_select(0x01);
-	
-	while(1){
+	idx = 0x0002;
 
-		/*c = uart1_read();
-		spi_write(0x01,c);
-
-		delay(50);*/
-		spi_test(c);
-		delay(50);
-		c++;
+	//be200_cmd_wr(0x0001,BE200_REG_PLL,31);
+	uint8_t c;
+	while(1)
+	{
+		c = uart_read();
+	    uart_write(c);
+		//delay(1000);
+		//be200_uart_handler();
 	}
 	return 0;
 }

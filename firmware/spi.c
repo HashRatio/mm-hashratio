@@ -8,8 +8,19 @@
 #include "io.h"
 #include "uart.h"
 
-static struct lm32_spi *spi[] = { \
-(struct lm32_spi *)SPI0_BASE};
+static struct lm32_spi *spi[10] = {
+(struct lm32_spi *)SPI0_BASE, 
+(struct lm32_spi *)SPI1_BASE,
+(struct lm32_spi *)SPI2_BASE,
+(struct lm32_spi *)SPI3_BASE,
+(struct lm32_spi *)SPI4_BASE,
+(struct lm32_spi *)SPI5_BASE,
+(struct lm32_spi *)SPI6_BASE,
+(struct lm32_spi *)SPI7_BASE,
+(struct lm32_spi *)SPI8_BASE,
+(struct lm32_spi *)SPI9_BASE,
+};
+
 //static struct lm32_spi *spi1 = (struct lm32_spi *)SPI1_BASE;
 static struct lm32_spi * spi0 = (struct lm32_spi *)SPI0_BASE;
 
@@ -23,7 +34,7 @@ void spi_select(struct lm32_spi * tar_spi, uint8_t cidx)
 }
 
 
-void spi_transfer(uint16_t idx, uint8_t * rbuff, uint8_t * wbuff, uint32_t cnt)
+void spi_transfer(uint16_t idx, uint8_t * wbuff, uint8_t * rbuff, uint32_t cnt)
 {	
 	uint8_t board_idx = (uint8_t)(idx >> 8);
 	uint8_t chip_idx = (uint8_t)idx;
@@ -73,47 +84,9 @@ void spi_writeb(struct lm32_spi * tar_spi, uint8_t c)
 
 void spi_write(unsigned char cid,char c)
 {
-	unsigned char s;
+	//unsigned char s;
 	writeb(c,&spi0->tx);
-	//writeb(c, &spi0->tx);
-	s = readb(&spi0->ssmask);
-	//uart1_write(s);
-	
-	/*uart1_writel((unsigned int)&spi0->rx);
-	uart1_writel((unsigned int)&spi0->tx);
-	uart1_writel((unsigned int)&spi0->status);
-	uart1_writel((unsigned int)&spi0->control);
-	uart1_writel((unsigned int)&spi0->ssmask);*/
-
 	uart1_writeb(spi0->rx);
-	uart1_writeb(spi0->tx);
-	uart1_writeb(spi0->status);
-	uart1_writeb(spi0->control);
-	uart1_writeb(spi0->ssmask);
-
-	//s = readb((volatile unsigned char *)(spi0->ssmask));
-	uart1_writeb(*(&spi0->ssmask));
-
-	//s = readb((volatile unsigned char *)(&spi0->ssmask));
-	//s = readb(&(spi0->ssmask));
-	//uart1_writel((unsigned int)&spi0->ssmask);
-	
-	/*writeb(cid,&spi0->ssmask);
-	s = readb(&spi0->ssmask);
-	uart1_write(s);
-
-	writeb(cid,&spi0->ssmask);
-	s = readb(&spi0->status);
-	uart1_write(s);
-
-	writeb(cid,&spi0->ssmask);
-	s = readb(&spi0->control);
-	uart1_write(s);
-
-	writeb(cid,&spi0->ssmask);
-	s = readb(&spi0->tx);
-	uart1_write(s);*/
-	//s = readb(&spi0->ssmask);
 
 }
 
