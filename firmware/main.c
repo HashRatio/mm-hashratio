@@ -49,17 +49,6 @@ static uint8_t ret_buf[RET_RINGBUFFER_SIZE_RX][HRTO_P_DATA_LEN];
 static volatile unsigned int ret_produce = 0;
 static volatile unsigned int ret_consume = 0;
 
-<<<<<<< HEAD
-
-static uint8_t freq_read(uint16_t idx) {
-	return 0;
-}
-static void freq_write(uint16_t idx, uint8_t multi) {
-	return;
-}
-
-static void encode_pkg(uint8_t *p, int type, uint8_t *buf, unsigned int len, int idx, int cnt)
-=======
 static struct chip_status miner_status[CHIP_NUMBER];
 #define BE200_RET_RINGBUFFER_SIZE_RX 256
 #define BE200_RET_RINGBUFFER_MASK_RX (BE200_RET_RINGBUFFER_SIZE_RX-1)
@@ -67,9 +56,16 @@ static struct be200_result be200_result_buff[BE200_RET_RINGBUFFER_SIZE_RX];
 static volatile unsigned int be200_ret_produce = 0;
 static volatile unsigned int be200_ret_consume = 0;
 
+static uint8_t freq_read(uint8_t idx) {
+	return 0;
+}
 
-static void encode_pkg(uint8_t *p, int type, uint8_t *buf, unsigned int len)
->>>>>>> feature/be200_send_work
+static void freq_write(uint8_t idx, uint8_t multi) {
+	be200_set_pll(idx,mult);
+	return;
+}
+
+static void encode_pkg(uint8_t *p, int type, uint8_t *buf, unsigned int len, int idx, int cnt)
 {
 	uint32_t tmp;
 	uint16_t crc;
@@ -126,6 +122,25 @@ void send_pkg(int type, uint8_t *buf, unsigned int len, uint8_t idx, uint8_t cnt
 	debug32("Send: %d\n", type);
 	encode_pkg(g_act, type, buf, len, idx, cnt);
 	uart_nwrite((char *)g_act, HRTO_P_COUNT);
+}
+
+static void be200_polling()
+{
+	uint8_t *data;
+
+	if (be200_ret_consume == be200_ret_produce) {
+		send_pkg(HRTO_P_STATUS, NULL, 0, 1, 1);
+
+		g_local_work = 0;
+		g_hw_work = 0;
+		return;
+	}
+
+	data = &be200_result_buff[be200_ret_consume];
+	be200_ret_consume = (be200_ret_consume + 1) & BE200_RET_RINGBUFFER_MASK_RX;
+	//TODO: Change the number 13 to a macro.
+	send_pkg(HRTO_P_NONCE, data, 13, 1, 1);
+	return;
 }
 
 static void polling()
@@ -313,7 +328,6 @@ uint32_t be200_send_work(uint8_t idx, struct work *w)
 	memcpy(&miner_status[idx].job_id, &w->task_id+4, 4);
 	return 1;
 }
-
 
 uint32_t be200_read_result(struct mm_work *mw)
 {
