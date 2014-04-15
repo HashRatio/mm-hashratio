@@ -164,19 +164,19 @@ static void polling()
 static void freq_polling() {
 	uint8_t freq_arr[HRTO_P_DATA_LEN];
 	int i, j, n;
-	n = HRTO_DEFAULT_MINERS / HRTO_P_DATA_LEN + 1;
+	n = HRTO_DEFAULT_MINERS / HRTO_P_DATA_LEN;
 	
-	for (i = 0; i < n; i++) {
+	for (i = 0; i <= n; i++) {
 		memset(freq_arr, 0, sizeof(freq_arr));
-		if (i == n - 1) {
+		if (i == n) {
 			j = HRTO_DEFAULT_MINERS % HRTO_P_DATA_LEN - 1;
 		} else {
 			j = HRTO_P_DATA_LEN - 1;
 		}
 		for (; j >= 0; j--) {
-			freq_read((uint16_t)(i * HRTO_P_DATA_LEN + j));
+			freq_arr[j] = freq_read((uint16_t)(i * HRTO_P_DATA_LEN + j));
 		}
-		send_pkg(HRTO_P_GET_FREQ, freq_arr, HRTO_P_DATA_LEN, i, n - 1);
+		send_pkg(HRTO_P_GET_FREQ, freq_arr, HRTO_P_DATA_LEN, i, n);
 	}
 }
 
