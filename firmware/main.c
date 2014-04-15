@@ -61,7 +61,7 @@ static uint8_t freq_read(uint8_t idx) {
 }
 
 static void freq_write(uint8_t idx, uint8_t multi) {
-	be200_set_pll(idx,mult);
+	be200_set_pll(idx,multi);
 	return;
 }
 
@@ -136,7 +136,7 @@ static void be200_polling()
 		return;
 	}
 
-	data = &be200_result_buff[be200_ret_consume];
+	data = (uint8_t *)&be200_result_buff[be200_ret_consume];
 	be200_ret_consume = (be200_ret_consume + 1) & BE200_RET_RINGBUFFER_MASK_RX;
 	//TODO: Change the number 13 to a macro.
 	send_pkg(HRTO_P_NONCE, data, 13, 1, 1);
@@ -537,7 +537,7 @@ int main(int argv,char * * argc)
 	uart_init();
 	uart1_init();
 	idx = 0x0002;
-
+	be200_polling();
 	be200_cmd_wr(0,BE200_REG_PLL,31);
 	//uint8_t c;
 	//uart1_write(0x55);

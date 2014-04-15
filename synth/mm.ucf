@@ -12,9 +12,9 @@ NET "uartSOUT" PULLUP;
 #NET "hubRESET_N" LOC = R16;
 
 # UART debug
-NET "uart_debugSIN" LOC = C6;
-NET "uart_debugSOUT" LOC = C5;
-NET "uart_debugSOUT" PULLUP;
+#NET "uart_debugSIN" LOC = C6;
+#NET "uart_debugSOUT" LOC = C5;
+#NET "uart_debugSOUT" PULLUP;
 
 #NET   "SFT_SHCP" LOC = K16;
 #NET   "SFT_DS" LOC = M15;
@@ -188,8 +188,8 @@ NET "spi9_SS_N_MASTER[5]" LOC = K16;
 NET "spi9_SS_N_MASTER[6]" LOC = H15;
 NET "spi9_SS_N_MASTER[7]" LOC = E15;
 
-#NET "TWI_SCL" LOC = D3;
-#NET "TWI_SDA" LOC = E4;
+NET "TWI_SCL" LOC = C5;
+NET "TWI_SDA" LOC = C6;
 
 # SPI Flash: W25Q80BV
 #NET "POWER_ON" LOC = T3 | SLEW = QUIETIO;
