@@ -525,7 +525,7 @@ int main1(int argv, char **argc)
 		}
 		
 	}
-
+	be200_polling();
 	return 0;
 }
 
@@ -537,7 +537,7 @@ int main(int argv,char * * argc)
 	uart_init();
 	uart1_init();
 	idx = 0x0002;
-	be200_polling();
+	adjust_fan(0);
 	be200_cmd_wr(0,BE200_REG_PLL,31);
 	//uint8_t c;
 	//uart1_write(0x55);
@@ -546,7 +546,8 @@ int main(int argv,char * * argc)
 		//c = uart1_read();
 	    
 		//test_miner_status();
-		be200_uart_handler();
+		//be200_uart_handler();
+		read_temp0();
 	}
 	return 0;
 }
