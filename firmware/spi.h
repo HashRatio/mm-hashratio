@@ -10,7 +10,7 @@
 #define _SPI_H
 
 void spi_test(uint8_t c);
-void spi_transfer(uint16_t idx, uint8_t * rbuff, uint8_t * wbuff, uint32_t cnt);
+void spi_transfer(uint8_t idx, uint8_t * rbuff, uint8_t * wbuff, uint32_t cnt);
 void spi_select(unsigned char cid);
 void spi_write(unsigned int idx, char c);
 unsigned char spi_read(unsigned char idx, unsigned char * pbuff);

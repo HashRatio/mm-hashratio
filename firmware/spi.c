@@ -34,14 +34,15 @@ void spi_select(struct lm32_spi * tar_spi, uint8_t cidx)
 }
 
 
-void spi_transfer(uint16_t idx, uint8_t * wbuff, uint8_t * rbuff, uint32_t cnt)
+void spi_transfer(uint8_t idx, uint8_t * wbuff, uint8_t * rbuff, uint32_t cnt)
 {	
-	uint8_t board_idx = (uint8_t)(idx >> 8);
-	uint8_t chip_idx = (uint8_t)idx;
+	uint8_t chip_idx = 0x01 << (0x07 & idx);
+	uint8_t board_idx = (idx & 0xF8) >> 3 ;
+	//uint8_t board_idx = (uint8_t)(idx >> 8);
+	//uint8_t chip_idx = (uint8_t)idx;
 	struct lm32_spi * tar_spi = spi[board_idx];
 	uint32_t i;
 	spi_select(tar_spi,chip_idx);
-	
 	for(i=0;i<cnt;i++)
 	{
 		while (!(tar_spi->status & LM32_SPI_STAT_TRDY))

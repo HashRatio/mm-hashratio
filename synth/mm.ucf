@@ -4,17 +4,17 @@ NET "ex_clk_o" LOC = F4;
 #NET "INT" LOC = R7;
 
 # UART
-NET "uartSIN"  LOC = K15;#K15
-NET "uartSOUT" LOC = L14;#L14
+NET "uartSIN"  LOC = K15;
+NET "uartSOUT" LOC = L14;
 NET "uartSOUT" PULLUP;
 
 #NET "uartRESET_N" LOC = R15;
 #NET "hubRESET_N" LOC = R16;
 
 # UART debug
-#NET "uart_debugSIN" LOC = C6;
-#NET "uart_debugSOUT" LOC = C5;
-#NET "uart_debugSOUT" PULLUP;
+NET "uart_debugSIN" LOC = C6;
+NET "uart_debugSOUT" LOC = C5;
+NET "uart_debugSOUT" PULLUP;
 
 #NET   "SFT_SHCP" LOC = K16;
 #NET   "SFT_DS" LOC = M15;

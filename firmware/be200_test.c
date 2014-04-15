@@ -43,7 +43,7 @@ void prepare()
 }
 
 
-void be200_base_test(uint16_t idx)
+void be200_base_test(uint8_t idx)
 {
 	uint8_t i;
 	for(i=0;i<44;i++)
@@ -56,7 +56,7 @@ void be200_base_test(uint16_t idx)
 	}
 }
 
-void be200_mine(uint16_t idx)
+void be200_mine(uint8_t idx)
 {
     uint8_t ready;
 	uint8_t nonce_mask;
@@ -90,7 +90,7 @@ void be200_mine(uint16_t idx)
 	}
 }
 
-void be200_test(uint16_t idx)
+void be200_test(uint8_t idx)
 {
 	uint8_t cmd;
 	uint8_t c;
@@ -164,16 +164,12 @@ static uint8_t task_buffer[44];
 uint32_t be200_uart_nonce_test()
 {
 	uint8_t i;
-	uint8_t spi_idx;
-	uint8_t chip_idx;
-	uint16_t idx;
+	uint8_t idx;
 	uint8_t ready;
 	uint8_t nonce_mask;
 	uint32_t res;
 	
-	spi_idx = uart1_read();
-	chip_idx = uart1_read();
-	idx = ((uint16_t)spi_idx)<<8|chip_idx;
+	idx = uart1_read();
 	
 	for(i=0;i<44;i++)
 	{
@@ -201,13 +197,10 @@ uint32_t be200_uart_nonce_test()
 
 void be200_uart_set_freq()
 {
-	uint8_t spi_idx;
-	uint8_t chip_idx;
 	uint8_t multi;
-	uint16_t idx;
-	spi_idx = uart1_read();
-	chip_idx = uart1_read();
-	idx = ((uint16_t)spi_idx)<<8|chip_idx;
+	uint8_t idx;
+	
+	idx = uart1_read();
 	multi = uart1_read();
 	be200_cmd_wr(idx,BE200_REG_PLL,multi);
 	uart1_writeb(multi);
@@ -215,16 +208,12 @@ void be200_uart_set_freq()
 
 void be200_uart_check_idle()
 {
-	uint8_t spi_idx;
-	uint8_t chip_idx;
-	uint16_t idx;
-	spi_idx = uart1_read();
-	chip_idx = uart1_read();
-	idx = ((uint16_t)spi_idx)<<8|chip_idx;
+	uint8_t idx;
+	idx = uart1_read();
 	if(be200_check_idle(idx))
-		uart1_write('T');
+		uart1_writeb('T');
 	else
-		uart1_write('F');
+		uart1_writeb('F');
 }
 
 void be200_uart_handler()

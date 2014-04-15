@@ -89,33 +89,8 @@ uint32_t get_asic_freq()
 
 void miner_init_work(struct mm_work *mw, struct work *work)
 {
-	//int timeout;
-	//int asic_freq;
-    //
-	//memcpy(work->task_id, (uint8_t *)(&mw->pool_no), 4);
-	//memcpy(work->task_id + 4, (uint8_t *)(&work->nonce2), 4);
-    //
-	//timeout = 4294967 / (g_asic_freq * ASIC_COUNT); /* Time in ms */
-	//timeout *= CPU_FREQUENCY / 1000;     /* Time in cpu clock */
-	//memcpy(work->timeout, &timeout, 4);
-
-//	asic_freq = g_asic_freq * 32 / 50 + 0x7FE0;
-//	work->clock[0] = (asic_freq & 0xff00) >> 8;
-//	work->clock[1] = asic_freq & 0xff;
-//	work->clock[2] = 0x00;
-//	work->clock[3] = 0x07;	/* 0x0b: idle, 0x07: enable */
-
-//	work->clock[4] = 0x00;
-//	work->clock[5] = 0x00;
-//	work->clock[6] = 0x01;
-//	work->clock[7] = 0x74;
-
-//	work->step[0] = 0x24;
-//	work->step[1] = 0x92;
-//	work->step[2] = 0x49;
-//	work->step[3] = 0x25;	/* 2^32 / asic_count + 1:
-//				 * 6: 0x2aaaaaab, 7: 0x24924925, 10: 0x1999999a */
-
+	memcpy(work->task_id, (uint8_t *)(&mw->pool_no), 4);
+	memcpy(work->task_id + 4, (uint8_t *)(&work->nonce2), 4);
 }
 
 static void rev(unsigned char *s, size_t l)
