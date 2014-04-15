@@ -133,7 +133,7 @@ void uart_nwrite(const char *s, unsigned int l)
 
 
 #ifdef DEBUG
-#define UART1_RINGBUFFER_SIZE_RX 16
+#define UART1_RINGBUFFER_SIZE_RX 512
 #define UART1_RINGBUFFER_MASK_RX (UART1_RINGBUFFER_SIZE_RX-1)
 
 //UART1 rx buffer is limited up to 16 bytes, DO NOT send data more than that at one time.

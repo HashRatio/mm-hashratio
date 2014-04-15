@@ -418,14 +418,15 @@ int main(int argv,char * * argc)
 	uart1_init();
 	idx = 0x0002;
 
-	//be200_cmd_wr(0x0001,BE200_REG_PLL,31);
-	uint8_t c;
+	be200_cmd_wr(0,BE200_REG_PLL,31);
+	//uint8_t c;
+	//uart1_write(0x55);
 	while(1)
 	{
-		c = uart_read();
-	    uart_write(c);
-		//delay(1000);
-		//be200_uart_handler();
+		//c = uart1_read();
+	    
+		//test_miner_status();
+		be200_uart_handler();
 	}
 	return 0;
 }
