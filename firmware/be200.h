@@ -32,14 +32,21 @@
 
 #define BASE_FREQ 12 //Mhz
 
+#define CHIP_NUMBER 80
+
+
 struct chip_status {
 	uint32_t nonce2;
-	uint32_t nonce_reg0;
-	uint32_t nonce_reg1;
-	uint32_t nonce_reg2;
-	uint32_t nonce_reg3;
-	uint8_t status;
+	uint32_t job_id;
 };
+
+struct be200_result {
+	uint32_t nonce2;
+	uint32_t nonce;
+	uint32_t job_id;
+	uint8_t idx;
+};
+
 
 void be200_reset(uint8_t idx);
 uint8_t be200_check_idle(uint8_t idx);

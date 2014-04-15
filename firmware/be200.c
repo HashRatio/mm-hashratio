@@ -5,14 +5,10 @@
 #include "spi.h"
 #include "defines.h"
 #include "uart.h"
-
+#include "miner.h"
 
 static unsigned char read_buffer[BUFFER_SIZE * 2];
 static unsigned char write_buffer[BUFFER_SIZE * 2];
-
-#define CHIP_NUMBER 80
-
-//static struct chip_status miner_status[CHIP_NUMBER];
 
 uint8_t be200_cmd_ck(uint8_t idx)
 {
@@ -140,14 +136,6 @@ void be200_clear(uint8_t idx)
     be200_cmd_wr(idx,BE200_REG_CLEAR,0x00);
 }
 
-uint32_t be200_send_work(uint8_t idx, struct work *w)
-{
-	while(!be200_check_idle(idx))
-		;
-	be200_input_task(idx,w->data);
-	be200_start(idx);
-	return 0;
-}
 
 /*void test_miner_status()
 {

@@ -28,7 +28,7 @@
 #include "crc.h"
 #include "be200.h"
 #include "be200_test.h"
-
+#include "miner.h"
 #include "hexdump.c"
 #include "utils.h"
 
@@ -48,6 +48,14 @@ static uint32_t g_nonce2_range = 0xffffffff;
 static uint8_t ret_buf[RET_RINGBUFFER_SIZE_RX][HRTO_P_DATA_LEN];
 static volatile unsigned int ret_produce = 0;
 static volatile unsigned int ret_consume = 0;
+
+static struct chip_status miner_status[CHIP_NUMBER];
+#define BE200_RET_RINGBUFFER_SIZE_RX 256
+#define BE200_RET_RINGBUFFER_MASK_RX (BE200_RET_RINGBUFFER_SIZE_RX-1)
+static struct be200_result be200_result_buff[BE200_RET_RINGBUFFER_SIZE_RX];
+static volatile unsigned int be200_ret_produce = 0;
+static volatile unsigned int be200_ret_consume = 0;
+
 
 static void encode_pkg(uint8_t *p, int type, uint8_t *buf, unsigned int len)
 {
@@ -249,17 +257,67 @@ static int decode_pkg(uint8_t *p, struct mm_work *mw)
 	return 0;
 }
 
+uint32_t be200_send_work(uint8_t idx, struct work *w)
+{
+	if(!be200_check_idle(idx))
+		return 0;
+	be200_input_task(idx,w->data);
+	be200_start(idx);
+	memcpy(&miner_status[idx].job_id, &w->task_id, 4);
+	memcpy(&miner_status[idx].job_id, &w->task_id+4, 4);
+	return 1;
+}
+
+
+uint32_t be200_read_result(struct mm_work *mw)
+{
+	uint8_t idx;
+	uint8_t ready;
+	uint8_t nonce_mask;
+	uint32_t res;
+	int32_t nonce_check;
+	struct be200_result * data;
+	
+	for(idx=0;idx<CHIP_NUMBER;idx++)
+	{
+		ready = be200_get_done(idx,&nonce_mask);
+		if(ready == 0)
+			continue;
+		be200_get_result(idx,nonce_mask,&res);
+		g_local_work++;
+
+		/* check the validation of the nonce*/
+		//nonce_check = test_nonce(mw, ret);
+		//TODO: For the test, return value of test_nonce always be NONCE_DIFF
+		nonce_check = NONCE_DIFF;
+		
+		if (nonce_check == NONCE_HW) {
+			g_hw_work++;
+		}
+		if (nonce_check == NONCE_DIFF) {
+			/* put the valid nonce into be200 ring buffer */
+			data = &be200_result_buff[be200_ret_produce];
+			be200_ret_produce = (be200_ret_produce + 1) & BE200_RET_RINGBUFFER_MASK_RX;
+
+			data->idx = idx;
+			data->job_id = miner_status[idx].job_id;
+			data->nonce2 = miner_status[idx].nonce2;
+			data->nonce = res;
+		}
+		
+	}
+	return 0;
+}
+
+
 static int read_result(struct mm_work *mw, struct result *ret)
 {
+	/*
 	uint8_t *data;
 	int nonce;
 
 	if (alink_rxbuf_empty())
 		return 0;
-
-#ifdef DEBUG
-	alink_buf_status();
-#endif
 
 	alink_read_result(ret);
 	g_local_work++;
@@ -275,9 +333,9 @@ static int read_result(struct mm_work *mw, struct result *ret)
 		ret_produce = (ret_produce + 1) & RET_RINGBUFFER_MASK_RX;
 
 		memcpy(data, (uint8_t *)ret, 20);
-		memcpy(data + 20, mw->job_id, 4); /* Attach the job_id */
+		memcpy(data + 20, mw->job_id, 4); 
 	}
-
+	*/
 	return 1;
 }
 
@@ -347,6 +405,7 @@ int main1(int argv, char **argc)
 	struct mm_work mm_work;
 	struct work work;
 	struct result result;
+	uint8_t idx;
 
 	led(1);
 	adjust_fan(0);		/* Set the fan to 100% */
@@ -373,7 +432,6 @@ int main1(int argv, char **argc)
 	set_voltage(0x8f00);
 
 	while (1) {
-		uart1_write((char)0x55);
 		get_pkg(&mm_work);
 
 		wdg_feed((CPU_FREQUENCY / 1000) * 2);
@@ -387,15 +445,18 @@ int main1(int argv, char **argc)
 		if (!g_new_stratum)
 			continue;
 
-		if (alink_txbuf_count() < (24 * 5)) {
-			miner_gen_nonce2_work(&mm_work, mm_work.nonce2, &work);
+		if (alink_txbuf_count() < (24 * 5)) {	
 			get_pkg(&mm_work);
 			if (!g_new_stratum)
 				continue;
 
-			mm_work.nonce2++;
-			miner_init_work(&mm_work, &work);
-			alink_send_work(&work);
+			for(idx=0;idx<CHIP_NUMBER;idx++)
+			{
+				miner_gen_nonce2_work(&mm_work, mm_work.nonce2, &work);
+				mm_work.nonce2++;
+				miner_init_work(&mm_work, &work);
+				alink_send_work(&work);
+			}
 		}
 
 		while (read_result(&mm_work, &result)) {
