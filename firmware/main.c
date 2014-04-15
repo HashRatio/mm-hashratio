@@ -49,7 +49,15 @@ static uint8_t ret_buf[RET_RINGBUFFER_SIZE_RX][HRTO_P_DATA_LEN];
 static volatile unsigned int ret_produce = 0;
 static volatile unsigned int ret_consume = 0;
 
-static void encode_pkg(uint8_t *p, int type, uint8_t *buf, unsigned int len)
+
+static uint8_t freq_read(uint16_t idx) {
+	return 0;
+}
+static void freq_write(uint16_t idx, uint8_t multi) {
+	return;
+}
+
+static void encode_pkg(uint8_t *p, int type, uint8_t *buf, unsigned int len, int idx, int cnt)
 {
 	uint32_t tmp;
 	uint16_t crc;
@@ -61,8 +69,8 @@ static void encode_pkg(uint8_t *p, int type, uint8_t *buf, unsigned int len)
 	p[1] = HRTO_H2;
 
 	p[2] = type;
-	p[3] = 1;
-	p[4] = 1;
+	p[3] = idx;
+	p[4] = cnt;
 
 	data = p + 5;
 //	memcpy(data + 28, &g_module_id, 4); /* Attach the module_id at end */
@@ -71,6 +79,7 @@ static void encode_pkg(uint8_t *p, int type, uint8_t *buf, unsigned int len)
 	case HRTO_P_ACKDETECT:
 	case HRTO_P_NONCE:
 	case HRTO_P_TEST_RET:
+	case HRTO_P_GET_FREQ:
 		memcpy(data, buf, len);
 		break;
 	case HRTO_P_STATUS:
@@ -100,10 +109,10 @@ static void encode_pkg(uint8_t *p, int type, uint8_t *buf, unsigned int len)
 	p[HRTO_P_COUNT - 1] = (crc & 0xff00) >> 8;
 }
 
-void send_pkg(int type, uint8_t *buf, unsigned int len)
+void send_pkg(int type, uint8_t *buf, unsigned int len, uint8_t idx, uint8_t cnt)
 {
 	debug32("Send: %d\n", type);
-	encode_pkg(g_act, type, buf, len);
+	encode_pkg(g_act, type, buf, len, idx, cnt);
 	uart_nwrite((char *)g_act, HRTO_P_COUNT);
 }
 
@@ -112,7 +121,7 @@ static void polling()
 	uint8_t *data;
 
 	if (ret_consume == ret_produce) {
-		send_pkg(HRTO_P_STATUS, NULL, 0);
+		send_pkg(HRTO_P_STATUS, NULL, 0, 1, 1);
 
 		g_local_work = 0;
 		g_hw_work = 0;
@@ -121,15 +130,34 @@ static void polling()
 
 	data = ret_buf[ret_consume];
 	ret_consume = (ret_consume + 1) & RET_RINGBUFFER_MASK_RX;
-	send_pkg(HRTO_P_NONCE, data, HRTO_P_DATA_LEN - 4);
+	send_pkg(HRTO_P_NONCE, data, HRTO_P_DATA_LEN - 4, 1, 1);
 	return;
+}
+
+static void freq_polling() {
+	uint8_t freq_arr[HRTO_P_DATA_LEN];
+	int i, j, n;
+	n = HRTO_DEFAULT_MINERS / HRTO_P_DATA_LEN + 1;
+	
+	for (i = 0; i < n; i++) {
+		memset(freq_arr, 0, sizeof(freq_arr));
+		if (i == n - 1) {
+			j = HRTO_DEFAULT_MINERS % HRTO_P_DATA_LEN - 1;
+		} else {
+			j = HRTO_P_DATA_LEN - 1;
+		}
+		for (; j >= 0; j--) {
+			freq_read((uint16_t)(i * HRTO_P_DATA_LEN + j));
+		}
+		send_pkg(HRTO_P_GET_FREQ, freq_arr, HRTO_P_DATA_LEN, i, n - 1);
+	}
 }
 
 static int decode_pkg(uint8_t *p, struct mm_work *mw)
 {
 	unsigned int expected_crc;
 	unsigned int actual_crc;
-	int idx, cnt;
+	int idx, cnt, i;
 	uint32_t tmp;
 
 	uint8_t *data = p + 5;
@@ -232,6 +260,20 @@ static int decode_pkg(uint8_t *p, struct mm_work *mw)
 	case HRTO_P_TARGET:
 		memcpy(mw->target, data, HRTO_P_DATA_LEN);
 		break;
+	case HRTO_P_SET_FREQ:
+		if (cnt != 3) { break; }
+			if (idx == cnt - 1) {
+				i = HRTO_DEFAULT_MINERS % HRTO_P_DATA_LEN - 1;
+			} else {
+				i = HRTO_P_DATA_LEN - 1;
+			}
+		for (; i >= 0; i--) {
+			freq_write((uint16_t)(idx * HRTO_P_DATA_LEN + i), *(data+i));
+		}
+		break;
+	case HRTO_P_GET_FREQ:
+		freq_polling();
+		break;
 	case HRTO_P_TEST:
 //		memcpy(&tmp, data + 28, 4);
 //		if (g_module_id == tmp) {
@@ -248,6 +290,7 @@ static int decode_pkg(uint8_t *p, struct mm_work *mw)
 
 	return 0;
 }
+
 
 static int read_result(struct mm_work *mw, struct result *ret)
 {
@@ -304,26 +347,26 @@ static int get_pkg(struct mm_work *mw)
 
 			if (decode_pkg(g_pkg, mw)) {
 #ifdef CFG_ENABLE_ACK
-				send_pkg(HRTO_P_NAK, NULL, 0);
+				send_pkg(HRTO_P_NAK, NULL, 0, 1, 1);
 #endif
 				return 1;
 			} else {
 				/* Here we send back PKG if necessary */
 #ifdef CFG_ENABLE_ACK
-				send_pkg(HRTO_P_ACK, NULL, 0);
+				send_pkg(HRTO_P_ACK, NULL, 0, 1, 1);
 #endif
 				switch (g_pkg[2]/* pkg type */) {
 				case HRTO_P_DETECT:
 //					memcpy(&tmp, g_pkg + 5 + 28, 4);
 //					if (g_module_id == tmp)
 //						send_pkg(HRTO_P_ACKDETECT, (uint8_t *)MM_VERSION, MM_VERSION_LEN);
-					send_pkg(HRTO_P_ACKDETECT, (uint8_t *)MM_VERSION, MM_VERSION_LEN);
+					send_pkg(HRTO_P_ACKDETECT, (uint8_t *)MM_VERSION, MM_VERSION_LEN, 1, 1);
 					break;
 				case HRTO_P_REQUIRE:
 //					memcpy(&tmp, g_pkg + 5 + 28, 4);
 //					if (g_module_id == tmp)
 //						send_pkg(HRTO_P_STATUS, NULL, 0);
-					send_pkg(HRTO_P_STATUS, NULL, 0);
+					send_pkg(HRTO_P_STATUS, NULL, 0, 1, 1);
 					break;
 				default:
 					break;

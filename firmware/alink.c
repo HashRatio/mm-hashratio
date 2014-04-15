@@ -201,7 +201,7 @@ void alink_buf_status()
 }
 #endif
 
-extern void send_pkg(int type, uint8_t *buf, unsigned int len);
+//extern void send_pkg(int type, uint8_t *buf, unsigned int len);
 void alink_asic_idle()
 {
 	int i;
@@ -256,7 +256,7 @@ void alink_asic_test()
 		}
 		core_test[0] = i + 1;
 		/* Send out one pkg */
-		send_pkg(AVA2_P_TEST_RET, core_test, ASIC_COUNT + 1);
+//		send_pkg(AVA2_P_TEST_RET, core_test, ASIC_COUNT + 1);
 	}
 
 	writel(0, &alink->state); /* Enable alink hash mode */

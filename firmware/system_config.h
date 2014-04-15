@@ -9,8 +9,6 @@
 #ifndef _SYSTEM_CONFIG_H_
 #define _SYSTEM_CONFIG_H_
 
-#define HRTO_DEFAULT_MINERS   80
-
 // for test build
 #define AVA2_DEFAULT_MODULES 3
 #define AVA2_DEFAULT_MINERS  20

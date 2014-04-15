@@ -14,6 +14,11 @@
 #define HRTO_H1	'H'
 #define HRTO_H2	'R'
 
+#define HRTO_DEFAULT_MODULARS          5
+#define HRTO_DEFAULT_MINERS_PER_MODULAR 16
+/* total chips number */
+#define HRTO_DEFAULT_MINERS  (HRTO_DEFAULT_MODULARS * 16)
+
 #define HRTO_P_COINBASE_SIZE  (6 * 1024)
 #define HRTO_P_MERKLES_COUNT  20
 
@@ -31,12 +36,14 @@
 #define HRTO_P_REQUIRE  18
 #define HRTO_P_SET      19
 #define HRTO_P_TEST     20
+#define HRTO_P_SET_FREQ 21
+#define HRTO_P_GET_FREQ 22
 
-#define HRTO_P_ACK        21
-#define HRTO_P_NAK		  22
-#define HRTO_P_NONCE      23
-#define HRTO_P_STATUS     24
-#define HRTO_P_ACKDETECT  25
-#define HRTO_P_TEST_RET   26
+#define HRTO_P_ACK        51
+#define HRTO_P_NAK		  52
+#define HRTO_P_NONCE      53
+#define HRTO_P_STATUS     54
+#define HRTO_P_ACKDETECT  55
+#define HRTO_P_TEST_RET   56
 
 #endif	/* _PROTOCOL_H_ */
