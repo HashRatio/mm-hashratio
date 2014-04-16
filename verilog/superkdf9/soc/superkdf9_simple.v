@@ -1637,6 +1637,8 @@ sha sha256(
 assign twiTWI_en = (SHAREDBUS_ADR_I[31:6] == 26'b10000000000000000000011000);//Device address 0x80000600
 assign TWI_SCL = TWI_SCL_O == 1'b0 ? 1'b0 : 1'bz ;//p85
 assign TWI_SDA = TWI_SDA_OEN == 1'b0 ? 1'b0 : 1'bz ;//p8
+//wire PWM_w;
+//assign PWM = 1'b1;
 twi u_twi(
 // system clock and reset
 /*input         */ .CLK_I       (clk_i                       ) ,
