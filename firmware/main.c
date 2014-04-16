@@ -537,7 +537,7 @@ int main(int argv,char * * argc)
 	uart_init();
 	uart1_init();
 	idx = 0x0002;
-	adjust_fan(0);
+	adjust_fan(500);
 	be200_cmd_wr(0,BE200_REG_PLL,31);
 	//uint8_t c;
 	//uart1_write(0x55);
