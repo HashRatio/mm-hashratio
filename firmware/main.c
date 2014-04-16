@@ -531,23 +531,26 @@ int main1(int argv, char **argc)
 
 int main(int argv,char * * argc)
 {
-	uint16_t idx;
+	//uint16_t idx;
 	irq_setmask(0);
 	irq_enable(1);
 	uart_init();
 	uart1_init();
-	idx = 0x0002;
-	adjust_fan(500);
-	be200_cmd_wr(0,BE200_REG_PLL,31);
-	//uint8_t c;
+	//idx = 0x0002;
+	//adjust_fan(500);
+	//be200_cmd_wr(0,BE200_REG_PLL,31);
+	uint8_t c = 0x55;
 	//uart1_write(0x55);
 	while(1)
 	{
+		//c = uart_read();
+		
 		//c = uart1_read();
 	    
 		//test_miner_status();
 		//be200_uart_handler();
-		read_temp0();
+		//read_temp0();
+		uart1_writeb(c);
 	}
 	return 0;
 }
