@@ -32,7 +32,7 @@
 
 #define BASE_FREQ 12 //Mhz
 
-#define CHIP_NUMBER 80
+#define CHIP_NUMBER 16
 
 
 struct chip_status {
@@ -44,6 +44,7 @@ struct be200_result {
 	uint32_t nonce2;
 	uint32_t nonce;
 	uint32_t job_id;
+	uint32_t pool_no;
 	uint8_t idx;
 };
 

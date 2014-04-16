@@ -63,7 +63,7 @@ char uart_read(void)
 	char c;
 	while (rx_consume == rx_produce);
 	c = rx_buf[rx_consume];
-	rx_consume = (rx_consume + 1) & UART_RINGBUFFER_MASK_RX;
+	rx_consume = (rx_consume + 1) & UART_RINGBUFFER_MASK_RX;	
 	return c;
 }
 

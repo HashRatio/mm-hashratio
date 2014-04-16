@@ -136,14 +136,14 @@ void alink_read_result(struct result *r)
 
 
 extern void delay(unsigned int ms);
-void alink_flush_fifo()
-{
-	uint32_t value = readl(&alink->state);
-	value |= LM32_ALINK_STATE_FLUSH;
-	writel(value, &alink->state);
-
-	delay(1);
-}
+//void alink_flush_fifo()
+//{
+//	uint32_t value = readl(&alink->state);
+//	value |= LM32_ALINK_STATE_FLUSH;
+//	writel(value, &alink->state);
+//
+//	delay(1);
+//}
 
 static void asic_test_work(int chip, int core, int gate)
 {
@@ -202,23 +202,23 @@ void alink_buf_status()
 #endif
 
 //extern void send_pkg(int type, uint8_t *buf, unsigned int len);
-void alink_asic_idle()
-{
-	int i;
-
-	alink_flush_fifo();
-	for (i = 0; i < AVA2_DEFAULT_MINERS; i++) {
-		debug32("%d", i);
-		alink_init(1 << i);	/* Enable i miners */
-		asic_test_work(i, 0, 1);
-		while (!alink_txbuf_count())
-			;
-		while (!alink_busy_status())
-			;
-		delay(1);
-	}
-	alink_init(0x3ff);
-}
+//void alink_asic_idle()
+//{
+//	int i;
+//
+//	alink_flush_fifo();
+//	for (i = 0; i < AVA2_DEFAULT_MINERS; i++) {
+//		debug32("%d", i);
+//		alink_init(1 << i);	/* Enable i miners */
+//		asic_test_work(i, 0, 1);
+//		while (!alink_txbuf_count())
+//			;
+//		while (!alink_busy_status())
+//			;
+//		delay(1);
+//	}
+//	alink_init(0x3ff);
+//}
 
 void alink_asic_test()
 {

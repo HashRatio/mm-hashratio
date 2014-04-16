@@ -89,8 +89,8 @@ uint32_t get_asic_freq()
 
 void miner_init_work(struct mm_work *mw, struct work *work)
 {
-	memcpy(work->task_id, (uint8_t *)(&mw->pool_no), 4);
-	memcpy(work->task_id + 4, (uint8_t *)(&work->nonce2), 4);
+	memcpy(work->task_id, (uint8_t *)(&work->nonce2), 4);
+	memcpy(work->task_id + 4, (uint8_t *)(&mw->job_id), 4);
 }
 
 static void rev(unsigned char *s, size_t l)

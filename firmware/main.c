@@ -45,7 +45,7 @@ static uint32_t g_nonce2_range = 0xffffffff;
 
 #define RET_RINGBUFFER_SIZE_RX 16
 #define RET_RINGBUFFER_MASK_RX (RET_RINGBUFFER_SIZE_RX-1)
-static uint8_t ret_buf[RET_RINGBUFFER_SIZE_RX][HRTO_P_DATA_LEN];
+//static uint8_t ret_buf[RET_RINGBUFFER_SIZE_RX][HRTO_P_DATA_LEN];
 static volatile unsigned int ret_produce = 0;
 static volatile unsigned int ret_consume = 0;
 
@@ -124,9 +124,11 @@ void send_pkg(int type, uint8_t *buf, unsigned int len, uint8_t idx, uint8_t cnt
 	uart_nwrite((char *)g_act, HRTO_P_COUNT);
 }
 
-static void be200_polling()
+static void be200_polling(struct mm_work *mw)
 {
-	uint8_t *data;
+	uint8_t buf[HRTO_P_DATA_LEN];
+	struct be200_result *data;
+	uint32_t tmp;
 
 	if (be200_ret_consume == be200_ret_produce) {
 		send_pkg(HRTO_P_STATUS, NULL, 0, 1, 1);
@@ -135,31 +137,43 @@ static void be200_polling()
 		g_hw_work = 0;
 		return;
 	}
-
-	data = (uint8_t *)&be200_result_buff[be200_ret_consume];
+	
+	data = &be200_result_buff[be200_ret_consume];
 	be200_ret_consume = (be200_ret_consume + 1) & BE200_RET_RINGBUFFER_MASK_RX;
-	//TODO: Change the number 13 to a macro.
-	send_pkg(HRTO_P_NONCE, data, 13, 1, 1);
+	
+	memset(buf, 0, sizeof(buf));
+	tmp = data->idx;
+	memcpy(buf +  0, (uint8_t *)&tmp, 4);
+	tmp = data->pool_no;
+	memcpy(buf +  4, (uint8_t *)&tmp, 4);
+	tmp = data->nonce2;
+	memcpy(buf +  8, (uint8_t *)&tmp, 4);
+	tmp = data->nonce;
+	memcpy(buf + 12, (uint8_t *)&tmp, 4);
+	// job_id
+	memcpy(buf + 16, mw->job_id, 4);
+	
+	send_pkg(HRTO_P_NONCE, buf, HRTO_P_DATA_LEN, 1, 1);
 	return;
 }
 
-static void polling()
-{
-	uint8_t *data;
-
-	if (ret_consume == ret_produce) {
-		send_pkg(HRTO_P_STATUS, NULL, 0, 1, 1);
-
-		g_local_work = 0;
-		g_hw_work = 0;
-		return;
-	}
-
-	data = ret_buf[ret_consume];
-	ret_consume = (ret_consume + 1) & RET_RINGBUFFER_MASK_RX;
-	send_pkg(HRTO_P_NONCE, data, HRTO_P_DATA_LEN - 4, 1, 1);
-	return;
-}
+//static void polling()
+//{
+//	uint8_t *data;
+//
+//	if (ret_consume == ret_produce) {
+//		send_pkg(HRTO_P_STATUS, NULL, 0, 1, 1);
+//
+//		g_local_work = 0;
+//		g_hw_work = 0;
+//		return;
+//	}
+//
+//	data = ret_buf[ret_consume];
+//	ret_consume = (ret_consume + 1) & RET_RINGBUFFER_MASK_RX;
+//	send_pkg(HRTO_P_NONCE, data, HRTO_P_DATA_LEN - 4, 1, 1);
+//	return;
+//}
 
 static void freq_polling() {
 	uint8_t freq_arr[HRTO_P_DATA_LEN];
@@ -204,15 +218,15 @@ static int decode_pkg(uint8_t *p, struct mm_work *mw)
 		return 1;
 	}
 
-	timer_set(0, IDLE_TIME);
+//	timer_set(0, IDLE_TIME);
 	switch (p[2]) {
 	case HRTO_P_DETECT:
 		g_new_stratum = 0;
-		alink_flush_fifo();
+//		alink_flush_fifo();
 		break;
 	case HRTO_P_STATIC:
 		g_new_stratum = 0;
-		alink_flush_fifo();
+//		alink_flush_fifo();
 		memcpy(&mw->coinbase_len, data, 4);
 		memcpy(&mw->nonce2_offset, data + 4, 4);
 		memcpy(&mw->nonce2_size, data + 8, 4);
@@ -232,7 +246,6 @@ static int decode_pkg(uint8_t *p, struct mm_work *mw)
 		break;
 	case HRTO_P_JOB_ID:
 		memcpy(mw->job_id, data, 4);
-		hexdump(mw->job_id, 4);
 		break;
 	case HRTO_P_COINBASE:
 		if (idx == 1)
@@ -251,19 +264,20 @@ static int decode_pkg(uint8_t *p, struct mm_work *mw)
 //		if (g_module_id == tmp)
 //			polling();
 		
-		polling();
+//		polling();
+		be200_polling(mw);
 
-		memcpy(&tmp, data + 24, 4);
-		if (tmp) {
-			memcpy(&tmp, data, 4);
-			adjust_fan(tmp);
-			memcpy(&tmp, data + 4, 4);
-			set_voltage(tmp);
-			memcpy(&tmp, data + 8, 4);
-			set_asic_freq(tmp);
-
-			alink_flush_fifo();
-		}
+//		memcpy(&tmp, data + 24, 4);
+//		if (tmp) {
+//			memcpy(&tmp, data, 4);
+//			adjust_fan(tmp);
+//			memcpy(&tmp, data + 4, 4);
+//			set_voltage(tmp);
+//			memcpy(&tmp, data + 8, 4);
+//			set_asic_freq(tmp);
+//
+//			alink_flush_fifo();
+//		}
 		break;
 	case HRTO_P_REQUIRE:
 		break;
@@ -280,7 +294,7 @@ static int decode_pkg(uint8_t *p, struct mm_work *mw)
 
 //		mw->nonce2 = g_nonce2_offset + (g_nonce2_range / AVA2_DEFAULT_MODULES) * g_module_id;
 		mw->nonce2 = g_nonce2_offset + g_nonce2_range;
-		alink_flush_fifo();
+//		alink_flush_fifo();
 
 		g_new_stratum = 1;
 		break;
@@ -324,7 +338,7 @@ uint32_t be200_send_work(uint8_t idx, struct work *w)
 		return 0;
 	be200_input_task(idx,w->data);
 	be200_start(idx);
-	memcpy(&miner_status[idx].job_id, &w->task_id, 4);
+	memcpy(&miner_status[idx].nonce2, &w->task_id, 4);
 	memcpy(&miner_status[idx].job_id, &w->task_id+4, 4);
 	return 1;
 }
@@ -343,7 +357,7 @@ uint32_t be200_read_result(struct mm_work *mw)
 		ready = be200_get_done(idx,&nonce_mask);
 		if(ready == 0)
 			continue;
-		be200_get_result(idx,nonce_mask,&res);
+		be200_get_result(idx, nonce_mask, &res);
 		g_local_work++;
 
 		/* check the validation of the nonce*/
@@ -360,11 +374,11 @@ uint32_t be200_read_result(struct mm_work *mw)
 			be200_ret_produce = (be200_ret_produce + 1) & BE200_RET_RINGBUFFER_MASK_RX;
 
 			data->idx = idx;
-			data->job_id = miner_status[idx].job_id;
-			data->nonce2 = miner_status[idx].nonce2;
-			data->nonce = res;
+			data->pool_no = mw->pool_no;
+			data->nonce2  = miner_status[idx].nonce2;
+			data->job_id  = miner_status[idx].job_id;
+			data->nonce   = res;
 		}
-		
 	}
 	return 0;
 }
@@ -444,6 +458,7 @@ static int get_pkg(struct mm_work *mw)
 					break;
 				default:
 					break;
+						
 				}
 			}
 		}
@@ -468,7 +483,7 @@ int main1(int argv, char **argc)
 
 	led(1);
 	adjust_fan(0);		/* Set the fan to 100% */
-	alink_flush_fifo();
+//	alink_flush_fifo();
 
 	wdg_init(1);
 	wdg_feed((CPU_FREQUENCY / 1000) * 2); /* Configure the wdg to ~2 second, or it will reset FPGA */
@@ -486,7 +501,7 @@ int main1(int argv, char **argc)
 	timer_set(0, IDLE_TIME);
 	g_new_stratum = 0;
 
-	alink_asic_idle();
+//	alink_asic_idle();
 	adjust_fan(0x1ff);
 	set_voltage(0x8f00);
 
@@ -496,7 +511,7 @@ int main1(int argv, char **argc)
 		wdg_feed((CPU_FREQUENCY / 1000) * 2);
 		if (!timer_read(0) && g_new_stratum) {
 			g_new_stratum = 0;
-			alink_asic_idle();
+//			alink_asic_idle();
 			adjust_fan(0x1ff);
 //			set_voltage(0x8f00);
 		}
@@ -531,26 +546,38 @@ int main1(int argv, char **argc)
 
 int main(int argv,char * * argc)
 {
-	//uint16_t idx;
+	uint32_t ret;
+	struct mm_work mm_work;
+	struct work work;
+	uint16_t idx;
+//	struct result result;
+	
 	irq_setmask(0);
 	irq_enable(1);
+	
 	uart_init();
 	uart1_init();
-	//idx = 0x0002;
-	//adjust_fan(500);
-	//be200_cmd_wr(0,BE200_REG_PLL,31);
-	uint8_t c = 0x55;
+	
+	adjust_fan(600);
+	
+//	uint8_t c = 0x55;
 	//uart1_write(0x55);
-	while(1)
-	{
-		//c = uart_read();
+	while(1) {
+		get_pkg(&mm_work);
 		
-		//c = uart1_read();
-	    
-		//test_miner_status();
-		//be200_uart_handler();
-		//read_temp0();
-		uart1_writeb(c);
+		if (!g_new_stratum)
+			continue;
+		
+		for (idx = 0; idx < CHIP_NUMBER; idx++) {
+			miner_gen_nonce2_work(&mm_work, mm_work.nonce2, &work);
+			mm_work.nonce2++;
+			miner_init_work(&mm_work, &work);
+			
+			ret = be200_send_work(idx, &work);
+			debug32("be200_send_work, ret: %d, idx: %d\n", ret, idx);
+		}
+		
+		be200_read_result(&mm_work);
 	}
 	return 0;
 }
