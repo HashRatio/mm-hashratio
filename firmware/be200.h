@@ -10,8 +10,9 @@
 #include "uart.h"
 #include "miner.h"
 
+#define BE200_DEFAULT_FREQ 29
 
-#define BE200_ICLK 200
+//#define BE200_ICLK 200
 
 #define BE200_REG_START 44
 #define BE200_REG_CLEAR 62
@@ -32,20 +33,20 @@
 
 #define BASE_FREQ 12 //Mhz
 
-#define CHIP_NUMBER 16
+#define CHIP_NUMBER 80
 
 
 struct chip_status {
 	uint32_t nonce2;
-	uint32_t job_id;
+//	uint32_t job_id;
 };
 
 struct be200_result {
 	uint32_t nonce2;
 	uint32_t nonce;
-	uint32_t job_id;
-	uint32_t pool_no;
 	uint8_t idx;
+//	uint32_t job_id;
+//	uint32_t pool_no;
 };
 
 

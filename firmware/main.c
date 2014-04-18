@@ -32,6 +32,7 @@
 #include "hexdump.c"
 #include "utils.h"
 
+
 #define IDLE_TIME	5	/* Seconds */
 static uint8_t g_pkg[HRTO_P_COUNT];
 static uint8_t g_act[HRTO_P_COUNT];
@@ -61,7 +62,8 @@ static uint8_t freq_read(uint8_t idx) {
 }
 
 static void freq_write(uint8_t idx, uint8_t multi) {
-	be200_set_pll(idx,multi);
+	be200_set_pll(idx, multi);
+	delay(1);
 	return;
 }
 
@@ -119,7 +121,7 @@ static void encode_pkg(uint8_t *p, int type, uint8_t *buf, unsigned int len, int
 
 void send_pkg(int type, uint8_t *buf, unsigned int len, uint8_t idx, uint8_t cnt)
 {
-	debug32("Send: %d\n", type);
+//	debug32("Send: %d\n", type);
 	encode_pkg(g_act, type, buf, len, idx, cnt);
 	uart_nwrite((char *)g_act, HRTO_P_COUNT);
 }
@@ -144,7 +146,7 @@ static void be200_polling(struct mm_work *mw)
 	memset(buf, 0, sizeof(buf));
 	tmp = data->idx;
 	memcpy(buf +  0, (uint8_t *)&tmp, 4);
-	tmp = data->pool_no;
+	tmp = mw->pool_no;
 	memcpy(buf +  4, (uint8_t *)&tmp, 4);
 	tmp = data->nonce2;
 	memcpy(buf +  8, (uint8_t *)&tmp, 4);
@@ -153,6 +155,9 @@ static void be200_polling(struct mm_work *mw)
 	// job_id
 	memcpy(buf + 16, mw->job_id, 4);
 	
+	debug32("polling, miner: %02x, pool_no: %02x, nonce2: %08x, nonce: %08x\n",
+			data->idx, mw->pool_no, data->nonce2, data->nonce);
+
 	send_pkg(HRTO_P_NONCE, buf, HRTO_P_DATA_LEN, 1, 1);
 	return;
 }
@@ -206,7 +211,7 @@ static int decode_pkg(uint8_t *p, struct mm_work *mw)
 	idx = p[3];
 	cnt = p[4];
 
-	debug32("Decode: %d %d/%d\n", p[2], idx, cnt);
+//	debug32("Decode: %d %d/%d\n", p[2], idx, cnt);
 
 	expected_crc = (p[HRTO_P_COUNT - 1] & 0xff) |
 		((p[HRTO_P_COUNT - 2] & 0xff) << 8);
@@ -334,12 +339,15 @@ static int decode_pkg(uint8_t *p, struct mm_work *mw)
 
 uint32_t be200_send_work(uint8_t idx, struct work *w)
 {
-	if(!be200_check_idle(idx))
+	if (!be200_check_idle(idx))
 		return 0;
-	be200_input_task(idx,w->data);
+	
+	be200_input_task(idx, w->data);
 	be200_start(idx);
-	memcpy(&miner_status[idx].nonce2, &w->task_id, 4);
-	memcpy(&miner_status[idx].job_id, &w->task_id+4, 4);
+	
+	miner_status[idx].nonce2 = w->nonce2;
+//	memcpy(&miner_status[idx].nonce2, &w->nonce2, 4);
+//	memcpy(&miner_status[idx].job_id, &w->task_id+4, 4);
 	return 1;
 }
 
@@ -352,12 +360,16 @@ uint32_t be200_read_result(struct mm_work *mw)
 	int32_t nonce_check;
 	struct be200_result * data;
 	
-	for(idx=0;idx<CHIP_NUMBER;idx++)
-	{
-		ready = be200_get_done(idx,&nonce_mask);
+//	for (idx = 0; idx < CHIP_NUMBER; idx++) {
+	for (idx = 16; idx < 32; idx++) {
+		ready = be200_get_done(idx, &nonce_mask);
 		if(ready == 0)
 			continue;
+		
 		be200_get_result(idx, nonce_mask, &res);
+//		delay(2);
+//		be200_dump_register(idx);
+		
 		g_local_work++;
 
 		/* check the validation of the nonce*/
@@ -374,10 +386,14 @@ uint32_t be200_read_result(struct mm_work *mw)
 			be200_ret_produce = (be200_ret_produce + 1) & BE200_RET_RINGBUFFER_MASK_RX;
 
 			data->idx = idx;
-			data->pool_no = mw->pool_no;
 			data->nonce2  = miner_status[idx].nonce2;
-			data->job_id  = miner_status[idx].job_id;
 			data->nonce   = res;
+//			data->pool_no = mw->pool_no;
+//			data->job_id  = miner_status[idx].job_id;
+			
+			debug32("be200_read_result, g_local_work: %d, miner: %d, pool_no: %02x, nonce2: %08x, nonce: %08x\n",
+					g_local_work, data->idx, mw->pool_no, data->nonce2, data->nonce);
+			
 		}
 	}
 	return 0;
@@ -540,7 +556,7 @@ int main1(int argv, char **argc)
 		}
 		
 	}
-	be200_polling();
+//	be200_polling();
 	return 0;
 }
 
@@ -552,32 +568,85 @@ int main(int argv,char * * argc)
 	uint16_t idx;
 //	struct result result;
 	
+//	uint8_t test_buf[44] = {
+//		/* 32 */
+//		0x37, 0xc9, 0x86, 0x58, 0xc9, 0x16, 0xd9, 0x12, 0x89, 0xd7, 0xdd, 0x17, 0xc8, 0x90, 0xac, 0x13,
+//		0xde, 0x93, 0x6f, 0x0f, 0x63, 0x64, 0x6c, 0x96, 0x37, 0x5d, 0xb1, 0xb8, 0x41, 0xc5, 0x58, 0xc4,
+//		/* 12 */
+//		0x6f, 0x64, 0x53, 0xb0, 0x53, 0x46, 0xcc, 0xf7, 0x19, 0x00, 0xb3, 0xaa
+//	}; /* nonce: 4f727c52, be200: d1abf843 */
+//	uint8_t test_buf[44] = {
+//		/* 32 */
+//		0xc4, 0x58, 0xc5, 0x41, 0xb8, 0xb1, 0x5d, 0x37, 0x96, 0x6c, 0x64, 0x63, 0x0f, 0x6f, 0x93, 0xde,
+//		0x13, 0xac, 0x90, 0xc8, 0x17, 0xdd, 0xd7, 0x89, 0x12, 0xd9, 0x16, 0xc9, 0x58, 0x86, 0xc9, 0x37,
+//		/* 12 */
+//		0xaa, 0xb3, 0x00, 0x19, 0xf7, 0xcc, 0x46, 0x53, 0xb0, 0x53, 0x64, 0x6f
+//	}; /* nonce: 4f727c52 */
+	
+//	uint8_t test_buf[44] = {
+//		/* 32 */
+//		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+//		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+//		/* 12 */
+//		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x05, 0x69
+//	}; /* nonce: 017d0c44 */
+	
+	uint8_t test_buf[44] ={
+		0xf9 ,0xca ,0xc7 ,0x7f ,0x2a ,0x00 ,0xf1 ,0x64 ,0xb2 ,0x27 ,0xce ,0xf9 ,0x83 ,0x4b ,0xe8 ,0x73 ,0x41 ,0xf4 ,0x57 ,0x3e ,0x13 ,0xcc ,0xdb ,0x3b ,0x12 ,0x31 ,0x8e ,0x65 ,0x54 ,0xa9 ,0x83 ,0x5a ,0x25 ,0x51 ,0x28 ,0xa1 ,0x52 ,0x90 ,0x4b ,0xce ,0x19 ,0x07 ,0x0b ,0xfb};
+	// No. 0
+	
+//	uint8_t test_buf[44] = {
+//		/* 32 bytes */
+//		0xae, 0x73, 0x8e, 0xa1, 0x55, 0x01, 0x59, 0x9e, 0x46, 0x9b, 0x3e, 0x0b, 0x3c, 0xb1, 0x7b, 0x42,
+//		0x31, 0x78, 0xa2, 0x51, 0xca, 0xe1, 0x3d, 0xe6, 0x7f, 0x0b, 0x40, 0xaa, 0x0d, 0x76, 0xd3, 0x5a,
+//		/* 12 bytes */
+//		0xb7, 0x31, 0x47, 0x5e, 0x53, 0x46, 0xcc, 0x9d, 0x19, 0x00, 0xb3, 0xaa
+//	}; /* nonce: 5d1a2de2, be200: c16635a3 */
+	
+
+	
 	irq_setmask(0);
 	irq_enable(1);
 	
 	uart_init();
 	uart1_init();
 	
-	adjust_fan(600);
+	adjust_fan(1200);
 	
 //	uint8_t c = 0x55;
 	//uart1_write(0x55);
+	
+	for (idx = 0; idx < 80; idx++) {
+		freq_write(idx, BE200_DEFAULT_FREQ);  // (X + 1) / 2
+	}
+	
 	while(1) {
-		get_pkg(&mm_work);
+//		get_pkg(&mm_work);
+//		
+//		if (!g_new_stratum)
+//			continue;
 		
-		if (!g_new_stratum)
-			continue;
-		
-		for (idx = 0; idx < CHIP_NUMBER; idx++) {
-			miner_gen_nonce2_work(&mm_work, mm_work.nonce2, &work);
-			mm_work.nonce2++;
-			miner_init_work(&mm_work, &work);
+//		for (idx = 0; idx < CHIP_NUMBER; idx++) {
+		for (idx = 16; idx < 32; idx++) {
+			if (!be200_check_idle(idx)) {
+				continue;
+			}
+//			mm_work.nonce2++;
+//			miner_gen_nonce2_work(&mm_work, mm_work.nonce2, &work);
+			
+			// test 44 bytes
+			memcpy(work.data, test_buf, 44);
 			
 			ret = be200_send_work(idx, &work);
-			debug32("be200_send_work, ret: %d, idx: %d\n", ret, idx);
+//			hexdump(work.data, 44);
+			
+//			be200_dump_register(idx);
+			
+//			debug32("be200_send_work, ret: %d, idx: %d\n", ret, idx);
 		}
-		
 		be200_read_result(&mm_work);
+		
+//		delay(1000);
 	}
 	return 0;
 }

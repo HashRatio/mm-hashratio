@@ -87,11 +87,14 @@ uint32_t get_asic_freq()
 	return g_asic_freq;
 }
 
-void miner_init_work(struct mm_work *mw, struct work *work)
-{
-	memcpy(work->task_id, (uint8_t *)(&work->nonce2), 4);
-	memcpy(work->task_id + 4, (uint8_t *)(&mw->job_id), 4);
-}
+//void miner_init_work(struct mm_work *mw, struct work *work)
+//{
+//	work->nonce2 = mw->nonce2;
+//	
+//	work->job_id = mw->job_id;
+//	memcpy(work->task_id, (uint8_t *)(&work->nonce2), 4);
+//	memcpy(work->task_id + 4, (uint8_t *)(&mw->job_id), 4);
+//}
 
 static void rev(unsigned char *s, size_t l)
 {

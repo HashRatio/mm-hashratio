@@ -1,11 +1,12 @@
 #include <stdint.h>
 #include <stddef.h>
 
+#include "minilibc.h"
 #include "be200.h"
 #include "spi.h"
-#include "defines.h"
 #include "uart.h"
 #include "miner.h"
+#include "defines.h"
 
 static unsigned char read_buffer[BUFFER_SIZE * 2];
 static unsigned char write_buffer[BUFFER_SIZE * 2];
@@ -100,12 +101,19 @@ uint8_t be200_get_result(uint8_t idx, uint8_t nonce_mask,uint32_t * result)
 	    return 0;
 	}
 	
-	*result = ((uint32_t)be200_cmd_rd(idx,nonce_start_reg + 3)<<24) | 
-			((uint32_t)be200_cmd_rd(idx,nonce_start_reg + 2)<<16) | 
-			((uint32_t)be200_cmd_rd(idx,nonce_start_reg + 1)<<8) | 
-			((uint32_t)be200_cmd_rd(idx,nonce_start_reg + 0)<<0);
+	*result = ((uint32_t)be200_cmd_rd(idx,nonce_start_reg + 3) << 24) |
+			((uint32_t)be200_cmd_rd(idx,nonce_start_reg + 2)   << 16) |
+			((uint32_t)be200_cmd_rd(idx,nonce_start_reg + 1)   << 8)  |
+			(((uint32_t)be200_cmd_rd(idx,nonce_start_reg + 0)  << 0) + 1);
 	
-	be200_cmd_wr(idx,BE200_REG_CLEAR,0x00);
+//	be200_cmd_wr(idx, BE200_REG_CLEAR, 0x00);
+	be200_cmd_rd(idx, BE200_REG_CLEAR);  // 使用read方式，可以清理nonce_mask
+	
+//	debug32("dump be200_get_result: \n");
+//	be200_dump_register(idx);
+	
+//	be200_cmd_rst(idx);
+//	be200_set_pll(idx, BE200_DEFAULT_FREQ);
 	return 1;
 }
 
@@ -122,13 +130,16 @@ void be200_dump_register(uint8_t idx)
 	for(i=0;i<64;i++)
 	{
 		c = be200_cmd_rd(idx,i);
-		uart1_writeb(c);
+//		uart1_writeb(c);
+		debug32("%d: %02x ", i, c);
 	}
+	debug32("\n");
 }
 
 void be200_set_pll(uint8_t idx, uint8_t mult)
 {
-	be200_cmd_wr(idx,BE200_REG_PLL,(0x7F & (mult*2-1)));
+//	be200_cmd_wr(idx, BE200_REG_PLL, (0x80 | mult));
+	be200_cmd_wr(idx, BE200_REG_PLL, (0x7F & mult));
 }
 
 void be200_clear(uint8_t idx)
