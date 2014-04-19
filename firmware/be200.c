@@ -7,6 +7,7 @@
 #include "uart.h"
 #include "miner.h"
 #include "defines.h"
+#include "utils.h"
 
 static unsigned char read_buffer[BUFFER_SIZE * 2];
 static unsigned char write_buffer[BUFFER_SIZE * 2];
@@ -51,19 +52,18 @@ void be200_reset(uint8_t idx)
     be200_cmd_rst(idx);
 }
 
-uint8_t be200_check_idle(uint8_t idx)
+uint8_t be200_is_idle(uint8_t idx)
 {
-	return be200_cmd_ck(idx)& BE200_STAT_W_ALLOW;
+	return be200_cmd_ck(idx) & BE200_STAT_W_ALLOW;
 }
 
 uint8_t be200_input_task(uint8_t idx,const uint8_t * task)
 {
 	uint8_t i,c;
-	for(i=0;i<44;i++)
-	{
+	for (i = 0; i < 44; i++) {
 		be200_cmd_wr(idx, i, task[i]);
-		c = be200_cmd_rd(idx,i);
-		if(c != task[i])
+		c = be200_cmd_rd(idx, i);
+		if (c != task[i])
 			return 0;
 	}
     return 1;
@@ -71,7 +71,7 @@ uint8_t be200_input_task(uint8_t idx,const uint8_t * task)
 
 void be200_start(uint8_t idx)
 {
-	be200_cmd_wr(idx,BE200_REG_START,0x00);
+	be200_cmd_wr(idx, BE200_REG_START, 0xFF);
 }
 
 uint8_t be200_get_done(uint8_t idx, uint8_t * nonce_mask)
@@ -107,13 +107,11 @@ uint8_t be200_get_result(uint8_t idx, uint8_t nonce_mask,uint32_t * result)
 			(((uint32_t)be200_cmd_rd(idx,nonce_start_reg + 0)  << 0) + 1);
 	
 //	be200_cmd_wr(idx, BE200_REG_CLEAR, 0x00);
+	
 	be200_cmd_rd(idx, BE200_REG_CLEAR);  // 使用read方式，可以清理nonce_mask
 	
-//	debug32("dump be200_get_result: \n");
-//	be200_dump_register(idx);
+//	delay(1);  // must delay at least 0.2ms after read results
 	
-//	be200_cmd_rst(idx);
-//	be200_set_pll(idx, BE200_DEFAULT_FREQ);
 	return 1;
 }
 

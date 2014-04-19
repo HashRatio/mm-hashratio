@@ -11,3 +11,12 @@ void delay(unsigned int ms)
 	}
 }
 
+void delay_us(unsigned int us)
+{
+	unsigned int i;
+	
+	while (us && us--) {
+		for (i = 0; i < CPU_FREQUENCY / 1000 / 1000 / 5; i++)
+			__asm__ __volatile__("nop");
+	}
+}

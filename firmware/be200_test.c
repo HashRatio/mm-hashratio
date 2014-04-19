@@ -71,13 +71,13 @@ void be200_mine(uint8_t idx)
 		uart1_writeb(0xAA);
 		uart1_writeb(0x55);
 		uart1_writeb(0xAA);
-		if( be200_check_idle(idx))
+		if( be200_is_idle(idx))
 		{
 			prepare();
 		    be200_input_task(idx,test_data);
 			be200_start(idx);
 		}
-		while(!be200_check_idle(idx))
+		while(!be200_is_idle(idx))
 		{
 		    ready = be200_get_done(idx,&nonce_mask);
 			if(ready > 0)
@@ -178,7 +178,7 @@ uint32_t be200_uart_nonce_test()
 
 	be200_input_task(idx,task_buffer);
 	be200_start(idx);
-	while(!be200_check_idle(idx))
+	while(!be200_is_idle(idx))
 	{
 	    ready = be200_get_done(idx,&nonce_mask);
 		if(ready > 0)
@@ -186,7 +186,7 @@ uint32_t be200_uart_nonce_test()
 		    be200_get_result(idx,nonce_mask,&res);
 			uart1_writel(res);
 			//be200_dump_register(idx);
-			while(!be200_check_idle(idx));
+			while(!be200_is_idle(idx));
 			be200_clear(idx);
 			return 1;
 		}
@@ -210,7 +210,7 @@ void be200_uart_check_idle()
 {
 	uint8_t idx;
 	idx = uart1_read();
-	if(be200_check_idle(idx))
+	if(be200_is_idle(idx))
 		uart1_writeb('T');
 	else
 		uart1_writeb('F');

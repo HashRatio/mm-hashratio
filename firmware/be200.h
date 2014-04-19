@@ -10,7 +10,7 @@
 #include "uart.h"
 #include "miner.h"
 
-#define BE200_DEFAULT_FREQ 29
+#define BE200_DEFAULT_FREQ 25
 
 //#define BE200_ICLK 200
 
@@ -51,7 +51,7 @@ struct be200_result {
 
 
 void be200_reset(uint8_t idx);
-uint8_t be200_check_idle(uint8_t idx);
+uint8_t be200_is_idle(uint8_t idx);
 uint8_t be200_input_task(uint8_t idx, const uint8_t * task);
 void be200_start(uint8_t idx);
 uint8_t be200_get_done(uint8_t idx, uint8_t * nonce_mask);
