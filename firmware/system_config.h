@@ -17,7 +17,7 @@
 #define ASIC_FREQUENCY	1500
 #define ASIC_COUNT	7
 
-#define CPU_FREQUENCY		(128 * 1000 * 1000) /* 50Mhz */
+#define CPU_FREQUENCY		(100 * 1000 * 1000) /* 50Mhz */
 #define UART_BAUD_RATE          (115200)
 
 /* Interrupt
