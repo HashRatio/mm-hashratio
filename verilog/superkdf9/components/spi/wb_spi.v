@@ -285,7 +285,8 @@ if (MASTER == 1) begin
      else if (reg_rd)
        SPI_DAT_O     <= #UDLY  dw00_cs ? reg_rxdata : 
                                dw04_cs ? reg_txdata : 
-                               dw08_cs ? reg_status : 
+                               //dw08_cs ? 9'b101010101 :
+							   dw08_cs ? reg_status:							   
                                dw0c_cs ? reg_control: 
                                dw10_cs ? reg_ssmask :
                                          32'h0;

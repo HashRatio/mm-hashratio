@@ -17,7 +17,7 @@
 #define ASIC_FREQUENCY	1500
 #define ASIC_COUNT	7
 
-#define CPU_FREQUENCY		(128 * 1000 * 1000) /* 50Mhz */
+#define CPU_FREQUENCY		(100 * 1000 * 1000) /* 50Mhz */
 #define UART_BAUD_RATE          (115200)
 
 /* Interrupt
@@ -50,12 +50,12 @@
 
 
 /* SPI */
-#define LM32_SPI_STAT_ROE	(1 << 2)
-#define LM32_SPI_STAT_TOE	(1 << 3)
-#define LM32_SPI_STAT_TMT	(1 << 4)
-#define LM32_SPI_STAT_TRDY	(1 << 5)
-#define LM32_SPI_STAT_RRDY	(1 << 6)
-#define LM32_SPI_STAT_ERR	(1 << 7)
+#define LM32_SPI_STAT_ROE	(1 << 3)
+#define LM32_SPI_STAT_TOE	(1 << 4)
+#define LM32_SPI_STAT_TMT	(1 << 5)
+#define LM32_SPI_STAT_TRDY	(1 << 6)
+#define LM32_SPI_STAT_RRDY	(1 << 7)
+#define LM32_SPI_STAT_ERR	(1 << 8)
 
 #define LM32_SPI_CTRL_IROE	(1 << 0)
 #define LM32_SPI_CTRL_ITOE	(1 << 1)
@@ -64,18 +64,21 @@
 #define LM32_SPI_CTRL_IE	(1 << 5)
 #define LM32_SPI_CTRL_SSO	(1 << 7)
 
+/*struct lm32_spi {
+	volatile unsigned int rx;
+	volatile unsigned int tx;
+	volatile unsigned int status;
+	volatile unsigned int control;
+	volatile unsigned int ssmask;
+};*/
+
 struct lm32_spi {
 	volatile unsigned int rx;
-	//volatile unsigned char rsv1[3];
 	volatile unsigned int tx;
-	//volatile unsigned char rsv2[3];
 	volatile unsigned int status;
-	//volatile unsigned char rsv3[3];
 	volatile unsigned int control;
-	//volatile unsigned char rsv4[3];
 	volatile unsigned int ssmask;
 };
-
 
 /* UART */
 #define LM32_UART_IER_RBRI	(1 << 0)

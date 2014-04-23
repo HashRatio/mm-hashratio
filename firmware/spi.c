@@ -52,13 +52,13 @@ void spi_transfer(uint8_t idx, uint8_t * wbuff, uint8_t * rbuff, uint32_t cnt)
 	spi_select(tar_spi,chip_idx);
 	for(i=0;i<cnt;i++)
 	{
-		while (!(tar_spi->status & LM32_SPI_STAT_TRDY))
-			;
-//		debug32("%02x\n", tar_spi->status);
 		writeb(wbuff[i],&tar_spi->tx);
+		//while (!(tar_spi->status & LM32_SPI_STAT_RRDY))
+		//	;
+		while (!(tar_spi->status & (LM32_SPI_STAT_TRDY | LM32_SPI_STAT_RRDY)))
+			;
 		rbuff[i] = tar_spi->rx;
 	}
-	delay_us(10);
 }
 
 void spi_test(uint8_t c)
