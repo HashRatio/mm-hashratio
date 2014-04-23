@@ -10,7 +10,7 @@
 #include "uart.h"
 #include "miner.h"
 
-#define BE200_DEFAULT_FREQ 27
+#define BE200_DEFAULT_FREQ 32
 
 //#define BE200_ICLK 200
 

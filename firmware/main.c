@@ -356,6 +356,8 @@ uint32_t be200_send_work(uint8_t idx, struct work *w)
 //		debug32("be200_input_task failure\n");
 //	}
 	
+	be200_cmd_rd(idx, BE200_REG_CLEAR);  // 使用read方式，可以清理nonce_mask
+	
 	be200_input_task(idx, w->data);
 	be200_start(idx);
 	
@@ -370,10 +372,12 @@ uint32_t be200_read_result(struct mm_work *mw)
 	uint8_t idx;
 	uint8_t ready;
 	uint8_t nonce_mask;
-	uint32_t nonce;
+	uint32_t nonce, nonce_new;
 	int32_t nonce_check = NONCE_HW;
 	struct be200_result *data;
-//	int i, found = 0;
+	
+	int i, found = 0;
+	int8_t diff_nonce[] = {0, -1, 1, -2, 2, -3, 3, 4, -4};
 
 //	for (idx = 0; idx < CHIP_NUMBER; idx++) {
 	for (idx = 16; idx < 32; idx++) {
@@ -386,32 +390,26 @@ uint32_t be200_read_result(struct mm_work *mw)
 		
 //		be200_dump_register(idx);
 		
-		g_local_work++;
-		g_total_nonce++;
 		/* check the validation of the nonce*/
 		
-//		for (i = 0; i <= 4 ; i++) {
-//			nonce_new = nonce + i;
-//			nonce_check = test_nonce(mw, miner_status[idx].nonce2, nonce_new);
-//			if (nonce_check == NONCE_DIFF) {
-//				found = 1;
-//				break;
-//			}
-//		}
-//		for (i = -1; i >= -4 ; i--) {
-//			nonce_new = nonce + i;
-//			nonce_check = test_nonce(mw, miner_status[idx].nonce2, nonce_new);
-//			if (nonce_check == NONCE_DIFF) {
-//				found = 1;
-//				break;
-//			}
-//		}
+		for (i = 0; i < sizeof(diff_nonce)/sizeof(diff_nonce[0]); i++) {
+			nonce_new = nonce + diff_nonce[i];
+			nonce_check = test_nonce(mw, miner_status[idx].nonce2, nonce_new);
+			if (nonce_check == NONCE_DIFF) {
+				nonce = nonce_new;
+				found = 1;
+				break;
+			}
+		}
 		
-		debug32("test_nonce return: %d\n", nonce_check);
+//		debug32("test_nonce return: %d\n", nonce_check);
 		
-//		if (!found /* NONCE_HW */) {
-//			g_hw_work++;
-//		} else {
+		if (!found /* NONCE_HW */) {
+			g_hw_work++;
+			debug32("========= invalid nonce =========\n");
+		} else {
+			g_local_work++;
+			g_total_nonce++;
 		
 			/* put the valid nonce into be200 ring buffer */
 			data = &be200_result_buff[be200_ret_produce];
@@ -426,7 +424,7 @@ uint32_t be200_read_result(struct mm_work *mw)
 			debug32("be200_read_result, g_local_work: %d, miner: %d, pool_no: %02x, nonce2: %08x, nonce: %08x, total:%d\n",
 					g_local_work, data->idx, mw->pool_no, data->nonce2, data->nonce, g_total_nonce);
 			
-//		}
+		}
 	}
 	
 	return 0;
@@ -636,8 +634,9 @@ int main(int argv,char * * argc)
 	while(1) {
 		get_pkg(&mm_work);
 		
-		if (!g_new_stratum)
+		if (!g_new_stratum) {
 			continue;
+		}
 		
 //		i++;
 //		if (i > 31) {
@@ -646,6 +645,10 @@ int main(int argv,char * * argc)
 		
 //		for (idx = 0; idx < CHIP_NUMBER; idx++) {
 		for (idx = 16; idx < 32; idx++) {
+			get_pkg(&mm_work);
+			if (!g_new_stratum) {
+				continue;
+			}
 			
 //			debug32("try send work, chip: %d\n", idx);
 			if (!be200_is_idle(idx)) {
@@ -669,6 +672,7 @@ int main(int argv,char * * argc)
 			
 //			hexdump(mm_work.header, 80);
 //			debug32("be200_send_work, ret: %d, chip: %d, nonce2: %08x\n", ret, idx, mm_work.nonce2);
+			
 		}
 		
 		be200_read_result(&mm_work);
