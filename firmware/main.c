@@ -40,6 +40,7 @@ static uint8_t g_act[HRTO_P_COUNT];
 static int g_new_stratum = 0;
 static int g_local_work = 0;
 static int g_hw_work = 0;
+static int g_total_nonce = 0;
 
 static uint32_t g_nonce2_offset = 0;
 static uint32_t g_nonce2_range = 0xffffffff;
@@ -386,7 +387,7 @@ uint32_t be200_read_result(struct mm_work *mw)
 //		be200_dump_register(idx);
 		
 		g_local_work++;
-
+		g_total_nonce++;
 		/* check the validation of the nonce*/
 		
 //		for (i = 0; i <= 4 ; i++) {
@@ -422,9 +423,8 @@ uint32_t be200_read_result(struct mm_work *mw)
 //			data->pool_no = mw->pool_no;
 //			data->job_id  = miner_status[idx].job_id;
 			
-			// debug32
-			debug32("be200_read_result, g_local_work: %d, miner: %d, pool_no: %02x, nonce2: %08x, nonce: %08x\n",
-					g_local_work, data->idx, mw->pool_no, data->nonce2, data->nonce);
+			debug32("be200_read_result, g_local_work: %d, miner: %d, pool_no: %02x, nonce2: %08x, nonce: %08x, total:%d\n",
+					g_local_work, data->idx, mw->pool_no, data->nonce2, data->nonce, g_total_nonce);
 			
 //		}
 	}
@@ -621,15 +621,15 @@ int main(int argv,char * * argc)
 	uart_init();
 	uart1_init();
 	
-	adjust_fan(800);
+	adjust_fan(200);
 	
 //	uint8_t c = 0x55;
 	//uart1_write(0x55);
-	
+	debug32("Before Freq.\n");
 	for (idx = 0; idx < 80; idx++) {
 		freq_write(idx, BE200_DEFAULT_FREQ);  // (X + 1) / 2
 	}
-	
+	debug32("After Freq.\n");
 	
 	
 	
