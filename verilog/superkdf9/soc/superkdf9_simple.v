@@ -1573,7 +1573,7 @@ assign TWI_SDA = TWI_SDA_OEN == 1'b0 ? 1'b0 : 1'bz ;//p8
 wire PWM_w;
 assign PWM0 = PWM_w;
 assign PWM1 = PWM_w;
-//assign PWM = 1'b1;
+
 twi u_twi(
 // system clock and reset
 /*input         */ .CLK_I       (clk_i                       ) ,
@@ -1597,7 +1597,7 @@ twi u_twi(
 /*output        */ .TWI_SCL_O   (TWI_SCL_O                   ) ,
 /*input         */ .TWI_SDA_I   (TWI_SDA                     ) ,
 /*output        */ .TWI_SDA_OEN (TWI_SDA_OEN                 ) ,
-/*output        */ .PWM         (PWM_w                         ) ,
+/*output        */ .PWM	        (PWM_w                       ) ,
 /*output        */ .WATCH_DOG   (WATCH_DOG                   ) ,
 
 /*output        */ .SFT_SHCP    (SFT_SHCP                    ) ,
