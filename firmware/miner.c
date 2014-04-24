@@ -16,10 +16,7 @@
 #include "uart.h"
 #include "miner.h"
 #include "sha256.h"
-#include "alink.h"
 #include "twipwm.h"
-
-static uint32_t g_asic_freq = ASIC_FREQUENCY;
 
 static inline void flip32(void *dest_p, const void *src_p)
 {
@@ -63,80 +60,17 @@ static void calc_midstate(struct mm_work *mw, struct work *work)
 	sha256_update(data, 64);
 	sha256_final(work->data);
 
-	/* FIXME: LM32 will crash if I direct use
-	 * flip64(work->data, work->data);
-	 * Should be flip32 ??
-	 */
 	memcpy(data, work->data, 32);
 	flip32(work->data, data);
 	
 	memcpy(work->data + 32, mw->header + 64, 12);
 }
 
-void set_asic_freq(uint32_t value)
-{
-	if (g_asic_freq == value)
-		return;
-
-	g_asic_freq = value;
-}
-
-uint32_t get_asic_freq()
-{
-	return g_asic_freq;
-}
-
-//void miner_init_work(struct mm_work *mw, struct work *work)
-//{
-//	work->nonce2 = mw->nonce2;
-//	
-//	work->job_id = mw->job_id;
-//	memcpy(work->task_id, (uint8_t *)(&work->nonce2), 4);
-//	memcpy(work->task_id + 4, (uint8_t *)(&mw->job_id), 4);
-//}
-
-//static void rev(unsigned char *s, size_t l)
-//{
-//	size_t i, j;
-//	unsigned char t;
-//
-//	for (i = 0, j = l - 1; i < j; i++, j--) {
-//		t = s[i];
-//		s[i] = s[j];
-//		s[j] = t;
-//	}
-//}
-
-///* Total: 4W + 19W = 23W
-// * TaskID_H:1, TASKID_L:1, STEP:1, TIMEOUT:1,
-// * CLK_CFG:2, a2, Midsate:8, e0, e1, e2, a0, a1, Data:3
-// */
-//static void calc_prepare(struct work *work, uint8_t *buf)
-//{
-//	uint32_t precalc[6];
-//	sha256_precalc(buf, buf + 32, 12, (uint8_t *)precalc);
-//	memcpy(work->a0, precalc + 0, 4);
-//	memcpy(work->a1, precalc + 1, 4);
-//	memcpy(work->a2, precalc + 2, 4);
-//	memcpy(work->e0, precalc + 3, 4);
-//	memcpy(work->e1, precalc + 4, 4);
-//	memcpy(work->e2, precalc + 5, 4);
-//}
-
 void miner_gen_nonce2_work(struct mm_work *mw, uint32_t nonce2, struct work *work)
 {
 	uint8_t merkle_root[32], merkle_sha[64];
-//	uint8_t work_t[44];
 	uint32_t *data32, *swap32, tmp32;
 	int i;
-	
-//	uint8_t test_buf[] = {
-//		0x00, 0x00, 0x00, 0x02
-//		, 0x0f, 0x60, 0xba, 0x73, 0xa6, 0x71, 0x40, 0xbb, 0x5e, 0x12, 0x72, 0xd8, 0x09, 0xfe, 0x7b, 0x92, 0x67, 0x39, 0xfe, 0xb8, 0x41, 0x37, 0xe1, 0xee, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x00
-//		, 0xdd, 0x33, 0x33, 0x6a, 0xc4, 0xfc, 0x66, 0x8f, 0x93, 0x0a, 0x09, 0xb2, 0xcd, 0x83, 0x17, 0xe9, 0xce, 0xc5, 0xb7, 0xc3, 0x96, 0x48, 0xf7, 0x87, 0xbb, 0xe0, 0x2e, 0xe4,
-//		0x95, 0x44, 0xed, 0xde, 0x52, 0x90, 0x8b, 0x99
-//		, 0x19, 0x07, 0x0b, 0xfb
-//	};
 
 	tmp32 = bswap_32(nonce2);
 	memcpy(mw->coinbase + mw->nonce2_offset, (uint8_t *)(&tmp32), sizeof(uint32_t));
@@ -155,21 +89,8 @@ void miner_gen_nonce2_work(struct mm_work *mw, uint32_t nonce2, struct work *wor
 
 	memcpy(mw->header + mw->merkle_offset, merkle_root, 32);
 	memcpy(work->header, mw->header, 128);
-
-//	debug32("Work: nonce2 %08x\n", work->nonce2);
-//	memcpy(mw->header, test_buf, sizeof(test_buf));
 	
 	calc_midstate(mw, work);
-	
-//	debug32("calc_midstate, work->data: \n");
-//	hexdump(work->data, 44);
-	
-//	memcpy(work_t, work->data, 44);
-//	rev(work_t, 32);
-//	rev(work_t + 32, 12);
-//	memcpy(work->data, work_t, 44);
-
-//	hexdump(work->data, 44);
 }
 
 int fulltest(const unsigned char *hash, const unsigned char *target)
@@ -198,12 +119,6 @@ int fulltest(const unsigned char *hash, const unsigned char *target)
 
 int test_nonce(struct mm_work *mw, uint32_t nonce2, uint32_t nonce)
 {
-	/* Decode nonce2 and nonce */
-//	uint32_t nonce2, nonce;
-//	memcpy((uint8_t *)(&nonce2), ret->task_id + 4, 4);
-//	memcpy((uint8_t *)(&nonce), ret->nonce, 4);
-//	nonce -= 0x180;
-
 	/* Generate the work base on nonce2 */
 	struct work work;
 	debug32("Test: %08x %08x\n", nonce2, nonce);
@@ -225,7 +140,7 @@ int test_nonce(struct mm_work *mw, uint32_t nonce2, uint32_t nonce)
 
 	if (*hash_32 != 0)
 		return NONCE_HW;
+	
 	/* Compare hash with target */
-
 	return fulltest(hash1, mw->target);
 }
