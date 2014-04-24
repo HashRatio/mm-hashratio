@@ -10,12 +10,12 @@
 #define _SYSTEM_CONFIG_H_
 
 // for test build
-#define AVA2_DEFAULT_MODULES 3
-#define AVA2_DEFAULT_MINERS  20
-#define AVA2_P_TEST_RET   26
+//#define AVA2_DEFAULT_MODULES 3
+//#define AVA2_DEFAULT_MINERS  20
+//#define AVA2_P_TEST_RET   26
 
-#define ASIC_FREQUENCY	1500
-#define ASIC_COUNT	7
+//#define BE200_ASIC_FREQUENCY 280
+//#define ASIC_COUNT	7
 
 #define CPU_FREQUENCY		(100 * 1000 * 1000) /* 50Mhz */
 #define UART_BAUD_RATE          (115200)
@@ -144,13 +144,13 @@ struct lm32_sha256 {
 #define LM32_ALINK_STATE_RXCOUNT	(0x3FF00000)
 #define LM32_ALINK_STATE_TEST	(1 << 31)
 
-struct lm32_alink {
-	volatile unsigned int tx;
-	volatile unsigned int state;	/* Read only */
-	volatile unsigned int en;
-	volatile unsigned int busy;	/* Read only */
-	volatile unsigned int rx;
-};
+//struct lm32_alink {
+//	volatile unsigned int tx;
+//	volatile unsigned int state;	/* Read only */
+//	volatile unsigned int en;
+//	volatile unsigned int busy;	/* Read only */
+//	volatile unsigned int rx;
+//};
 
 /* TWI PWM */
 #define LM32_TWIPWM_CR_ENABLE	(1 << 0)
