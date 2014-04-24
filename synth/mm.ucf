@@ -193,7 +193,8 @@ NET "spi9_SS_N_MASTER[7]" LOC = E15;
 NET "PWM" LOC = D6 | SLEW = QUIETIO;
 NET "FAN_IN0" LOC = C7;
 
-#NET   "FAN_IN1" LOC = A7;
+NET   "FAN_IN1" LOC = E6;
+
 NET "*" IOSTANDARD = LVCMOS33;
 
 NET "ex_clk_i" TNM_NET = "ex_clk_i";
