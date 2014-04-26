@@ -434,7 +434,6 @@ module mm (
 , spi9_RESET
 
 , POWER_ON
-, PWM
 , TWI_SCL
 , TWI_SDA
 
@@ -444,11 +443,15 @@ module mm (
 , SFT_MR_N
 , SFT_OE_N
 
+, PWM0
 , FAN_IN0
+
+, PWM1
 , FAN_IN1
 );
 output POWER_ON ;
-output PWM ;
+output PWM0 ;
+output PWM1 ;
 input	ex_clk_i;
 output  ex_clk_o ;
 wire clk_i , reset_n ;
@@ -681,38 +684,6 @@ wire uart_debugUART_en;
 wire uart_debugINTR;
 input  uart_debugSIN;
 output  uart_debugSOUT;
-//alink
-// output [`PHY_NUM-1:0] TX_P ;
-// output [`PHY_NUM-1:0] TX_N ;
-// input  [`PHY_NUM-1:0] RX_P ;
-// input  [`PHY_NUM-1:0] RX_N ;
-
-// output [4:0] NONCE_led ;
-// wire [4:0] ALINK_led ;
-// reg [4:0] NONCE_led_f ;
-// reg [4:0] NONCE_led_r ;
-// wire [4:0] NONCE_led_w ;
-
-// always @ (posedge clk_i)begin
-	// NONCE_led_f <= NONCE_led_w ;
-	// NONCE_led_r[0] <= NONCE_led_w[0]&~NONCE_led_f[0] ? ~NONCE_led_r[0] : NONCE_led_r[0];
-	// NONCE_led_r[1] <= NONCE_led_w[1]&~NONCE_led_f[1] ? ~NONCE_led_r[1] : NONCE_led_r[1];
-	// NONCE_led_r[2] <= NONCE_led_w[2]&~NONCE_led_f[2] ? ~NONCE_led_r[2] : NONCE_led_r[2];
-	// NONCE_led_r[3] <= NONCE_led_w[3]&~NONCE_led_f[3] ? ~NONCE_led_r[3] : NONCE_led_r[3];
-	// NONCE_led_r[4] <= NONCE_led_w[4]&~NONCE_led_f[4] ? ~NONCE_led_r[4] : NONCE_led_r[4];
-// end
-
-// assign NONCE_led_w[0] = RX_P[0] & RX_N[0] & RX_P[1] & RX_N[1];
-// assign NONCE_led_w[1] = RX_P[2] & RX_N[2] & RX_P[3] & RX_N[3];
-// assign NONCE_led_w[2] = RX_P[4] & RX_N[4] & RX_P[5] & RX_N[5];
-// assign NONCE_led_w[3] = RX_P[6] & RX_N[6] & RX_P[7] & RX_N[7];
-// assign NONCE_led_w[4] = RX_P[8] & RX_N[8] & RX_P[9] & RX_N[9];
-
-// assign NONCE_led[0] = NONCE_led_r[0] || ALINK_led[0] ;
-// assign NONCE_led[1] = NONCE_led_r[1] || ALINK_led[1] ;
-// assign NONCE_led[2] = NONCE_led_r[2] || ALINK_led[2] ;
-// assign NONCE_led[3] = NONCE_led_r[3] || ALINK_led[3] ;
-// assign NONCE_led[4] = NONCE_led_r[4] || ALINK_led[4] ;
 
 //sha core
 wire [31:0] shaSHA_DAT_O;
@@ -720,13 +691,6 @@ wire   shaSHA_ACK_O;
 wire   shaSHA_ERR_O;
 wire   shaSHA_RTY_O;
 wire   shaSHA_en;
-
-//alink core
-// wire [31:0] alinkALINK_DAT_O;
-// wire        alinkALINK_ACK_O;
-// wire        alinkALINK_ERR_O;
-// wire        alinkALINK_RTY_O;
-// wire        alinkALINK_en;
 
 //twi core
 inout       TWI_SCL ;
@@ -1603,42 +1567,13 @@ sha sha256(
 /*output [31:0]*/ .SHA_DAT_O (shaSHA_DAT_O                )
 );
 
-//assign alinkALINK_en = (SHAREDBUS_ADR_I[31:6] == 26'b10000000000000000000010100);//Device address 0x80000500
-//alink alink(
-//// system clock and reset
-///*input         */ .CLK_I       (clk_i) ,
-///*input         */ .RST_I       (sys_reset) ,
-//
-//// wishbone interface signals
-///*input         */ .ALINK_CYC_I (SHAREDBUS_CYC_I & alinkALINK_en ) ,//NC
-///*input         */ .ALINK_STB_I (SHAREDBUS_STB_I & alinkALINK_en ) ,
-///*input         */ .ALINK_WE_I  (SHAREDBUS_WE_I                  ) ,
-///*input         */ .ALINK_LOCK_I(SHAREDBUS_LOCK_I                ) ,//NC
-///*input  [2:0]  */ .ALINK_CTI_I (SHAREDBUS_CTI_I                 ) ,//NC
-///*input  [1:0]  */ .ALINK_BTE_I (SHAREDBUS_BTE_I                 ) ,//NC
-///*input  [5:0]  */ .ALINK_ADR_I (SHAREDBUS_ADR_I[5:0]            ) ,
-///*input  [31:0] */ .ALINK_DAT_I (SHAREDBUS_DAT_I[31:0]           ) ,
-///*input  [3:0]  */ .ALINK_SEL_I (SHAREDBUS_SEL_I                 ) ,
-///*output        */ .ALINK_ACK_O (alinkALINK_ACK_O                ) ,
-///*output        */ .ALINK_ERR_O (alinkALINK_ERR_O                ) ,//const 0
-///*output        */ .ALINK_RTY_O (alinkALINK_RTY_O                ) ,//const 0
-///*output [31:0] */ .ALINK_DAT_O (alinkALINK_DAT_O                ) ,
-//
-////TX.PHY
-///*output [31:0] */ .TX_P        (TX_P                            ) ,
-///*output [31:0] */ .TX_N        (TX_N                            ) ,
-////RX.PHY
-///*input  [31:0] */ .RX_P        (RX_P                            ) ,
-///*input  [31:0] */ .RX_N        (RX_N                            ) ,
-///*output [4:0]  */ .ALINK_led   (ALINK_led                       )
-//);
-
-
 assign twiTWI_en = (SHAREDBUS_ADR_I[31:6] == 26'b10000000000000000000011000);//Device address 0x80000600
 assign TWI_SCL = TWI_SCL_O == 1'b0 ? 1'b0 : 1'bz ;//p85
 assign TWI_SDA = TWI_SDA_OEN == 1'b0 ? 1'b0 : 1'bz ;//p8
-//wire PWM_w;
-//assign PWM = 1'b1;
+wire PWM_w;
+assign PWM0 = PWM_w;
+assign PWM1 = PWM_w;
+
 twi u_twi(
 // system clock and reset
 /*input         */ .CLK_I       (clk_i                       ) ,
@@ -1662,7 +1597,7 @@ twi u_twi(
 /*output        */ .TWI_SCL_O   (TWI_SCL_O                   ) ,
 /*input         */ .TWI_SDA_I   (TWI_SDA                     ) ,
 /*output        */ .TWI_SDA_OEN (TWI_SDA_OEN                 ) ,
-/*output        */ .PWM         (PWM                         ) ,
+/*output        */ .PWM	        (PWM_w                       ) ,
 /*output        */ .WATCH_DOG   (WATCH_DOG                   ) ,
 
 /*output        */ .SFT_SHCP    (SFT_SHCP                    ) ,
