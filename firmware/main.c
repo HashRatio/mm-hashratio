@@ -277,8 +277,8 @@ uint32_t be200_read_result(struct mm_work *mw)
 	int i, found = 0;
 	int8_t diff_nonce[] = {0, -1, 1, -2, 2, -3, 3, 4, -4};
 
-//	for (idx = 0; idx < CHIP_NUMBER; idx++) {
-	for (idx = 16; idx < 32; idx++) {
+	for (idx = 0; idx < CHIP_NUMBER; idx++) {
+//	for (idx = 16; idx < 32; idx++) {
 		ready = be200_get_done(idx, &nonce_mask);
 		if(ready == 0)
 			continue;
@@ -399,10 +399,6 @@ int main(int argv,char * * argc)
 		freq_write(idx, (BE200_DEFAULT_FREQ/10) - 1);  // (X + 1) / 2
 	}
 
-//	for (idx = 16; idx < 32; idx++) {
-//		freq_write(idx, freq_arr[idx-16] - 1);
-//	}
-	
 	while(1) {
 		get_pkg(&mm_work);
 		
@@ -410,8 +406,8 @@ int main(int argv,char * * argc)
 			continue;
 		}
 		
-//		for (idx = 0; idx < CHIP_NUMBER; idx++) {
-		for (idx = 16; idx < 32; idx++) {
+		for (idx = 0; idx < CHIP_NUMBER; idx++) {
+//		for (idx = 16; idx < 32; idx++) {
 			get_pkg(&mm_work);
 			if (!g_new_stratum) {
 				continue;
