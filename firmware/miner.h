@@ -20,6 +20,7 @@
 
 struct work {
 	uint32_t nonce2;
+	uint32_t pool_no;
 //	uint32_t job_id;
 //	uint8_t	task_id[8];	/* Nonce2 + job_id etc */
 

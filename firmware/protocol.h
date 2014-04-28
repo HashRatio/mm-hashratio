@@ -19,7 +19,7 @@
 /* total chips number */
 #define HRTO_DEFAULT_MINERS  (HRTO_DEFAULT_MODULARS * 16)
 
-#define HRTO_P_COINBASE_SIZE  (6 * 1024)
+#define HRTO_P_COINBASE_SIZE  (2 * 1024)
 #define HRTO_P_MERKLES_COUNT  20
 
 #define HRTO_P_COUNT     39

@@ -31,8 +31,9 @@
 #include "hexdump.c"
 #include "utils.h"
 
-
+#define MAX_POOL_NUM 3
 #define IDLE_TIME	5	/* Seconds */
+
 static uint8_t g_pkg[HRTO_P_COUNT];
 static uint8_t g_act[HRTO_P_COUNT];
 static int g_new_stratum = 0;
@@ -40,11 +41,13 @@ static int g_local_work  = 0;
 static int g_hw_work     = 0;
 static int g_total_nonce = 0;
 static int g_asic_freq   = BE200_DEFAULT_FREQ;
+static int g_pool_no     = 0;
+static struct mm_work g_mm_works[MAX_POOL_NUM];
 
 static uint32_t g_nonce2_offset = 0;
 static uint32_t g_nonce2_range  = 0xffffffff;
 
-#define BE200_RET_RINGBUFFER_SIZE_RX 256
+#define BE200_RET_RINGBUFFER_SIZE_RX 64
 #define BE200_RET_RINGBUFFER_MASK_RX (BE200_RET_RINGBUFFER_SIZE_RX-1)
 
 static volatile unsigned int ret_produce = 0;
@@ -110,11 +113,12 @@ void send_pkg(int type, uint8_t *buf, unsigned int len, uint8_t idx, uint8_t cnt
 	uart_nwrite((char *)g_act, HRTO_P_COUNT);
 }
 
-static void be200_polling(struct mm_work *mw)
+static void be200_polling()
 {
 	uint8_t buf[HRTO_P_DATA_LEN];
 	struct be200_result *data;
 	uint32_t tmp;
+	struct mm_work *mw;
 
 	if (be200_ret_consume == be200_ret_produce) {
 		send_pkg(HRTO_P_STATUS, NULL, 0, 1, 1);
@@ -126,6 +130,8 @@ static void be200_polling(struct mm_work *mw)
 	
 	data = &be200_result_buff[be200_ret_consume];
 	be200_ret_consume = (be200_ret_consume + 1) & BE200_RET_RINGBUFFER_MASK_RX;
+	
+	mw = &g_mm_works[data->pool_no];
 	
 	memset(buf, 0, sizeof(buf));
 	tmp = data->idx;
@@ -146,12 +152,14 @@ static void be200_polling(struct mm_work *mw)
 	return;
 }
 
-static int decode_pkg(uint8_t *p, struct mm_work *mw)
+//static int decode_pkg(uint8_t *p, struct mm_work *mw)
+static int decode_pkg(uint8_t *p)
 {
 	unsigned int expected_crc;
 	unsigned int actual_crc;
 	int idx, cnt, i;
 	uint32_t tmp;
+	struct mm_work *mw = &g_mm_works[g_pool_no];
 
 	uint8_t *data = p + 5;
 	idx = p[3];
@@ -173,7 +181,12 @@ static int decode_pkg(uint8_t *p, struct mm_work *mw)
 		g_new_stratum = 0;
 		break;
 	case HRTO_P_STATIC:
+		// swith pool_no
+		memcpy(&g_pool_no, data + 24, 4);
+		g_pool_no = g_pool_no % MAX_POOL_NUM;
+		mw = &g_mm_works[g_pool_no];
 		g_new_stratum = 0;
+		
 		memcpy(&mw->coinbase_len, data, 4);
 		memcpy(&mw->nonce2_offset, data + 4, 4);
 		memcpy(&mw->nonce2_size, data + 8, 4);
@@ -211,7 +224,7 @@ static int decode_pkg(uint8_t *p, struct mm_work *mw)
 		debug32("HRTO_P_HEADER: idx: %d, cnt: %d\n", idx, cnt);
 		break;
 	case HRTO_P_POLLING:
-		be200_polling(mw);
+		be200_polling();
 		break;
 	case HRTO_P_REQUIRE:
 		break;
@@ -223,6 +236,7 @@ static int decode_pkg(uint8_t *p, struct mm_work *mw)
 		memcpy(&tmp, data + 4, 4);
 		if (tmp > 100 && tmp <= 750 && tmp != g_asic_freq) {
 			for (i = 0; i < HRTO_DEFAULT_MINERS; i++) {
+				be200_reset(i);
 				freq_write(i, tmp/10 - 1);  // (X + 1) / 2
 			}
 			g_asic_freq = tmp;
@@ -236,10 +250,9 @@ static int decode_pkg(uint8_t *p, struct mm_work *mw)
 
 		// reset results ptr
 		be200_ret_produce = be200_ret_consume = 0;
-		
 		g_new_stratum = 1;
-		debug32("HRTO_P_SET: idx: %d, cnt: %d\n", idx, cnt);
 		
+		debug32("HRTO_P_SET: idx: %d, cnt: %d\n", idx, cnt);
 		break;
 	case HRTO_P_TARGET:
 		memcpy(mw->target, data, HRTO_P_DATA_LEN);
@@ -261,11 +274,13 @@ uint32_t be200_send_work(uint8_t idx, struct work *w)
 	be200_input_task(idx, w->data);
 	be200_start(idx);
 	
-	miner_status[idx].nonce2 = w->nonce2;
+	miner_status[idx].nonce2  = w->nonce2;
+	miner_status[idx].pool_no = w->pool_no;
 	return 1;
 }
 
-uint32_t be200_read_result(struct mm_work *mw)
+//uint32_t be200_read_result(struct mm_work *mw)
+uint32_t be200_read_result()
 {
 	uint8_t idx;
 	uint8_t ready;
@@ -289,7 +304,9 @@ uint32_t be200_read_result(struct mm_work *mw)
 		/* check the validation of the nonce*/
 		for (i = 0; i < sizeof(diff_nonce)/sizeof(diff_nonce[0]); i++) {
 			nonce_new = nonce + diff_nonce[i];
-			nonce_check = test_nonce(mw, miner_status[idx].nonce2, nonce_new);
+//			nonce_check = test_nonce(mw, miner_status[idx].nonce2, nonce_new);
+			nonce_check = test_nonce(&g_mm_works[miner_status[idx].pool_no],
+									 miner_status[idx].nonce2, nonce_new);
 			if (nonce_check == NONCE_DIFF) {
 				nonce = nonce_new;
 				found = 1;
@@ -310,18 +327,21 @@ uint32_t be200_read_result(struct mm_work *mw)
 
 			data->idx = idx;
 			data->nonce2  = miner_status[idx].nonce2;
+			data->pool_no = miner_status[idx].pool_no;
 			data->nonce   = nonce;
 			
 			debug32("be200_read_result, g_local_work: %d, miner: %d, "
 					"pool_no: %02x, nonce2: %08x, nonce: %08x, total:%d\n",
-					g_local_work, data->idx, mw->pool_no, data->nonce2, data->nonce, g_total_nonce);
+					g_local_work, data->idx, data->pool_no,
+					data->nonce2, data->nonce, g_total_nonce);
 		}
 	}
 	
 	return 0;
 }
 
-static int get_pkg(struct mm_work *mw)
+//static int get_pkg(struct mm_work *mw)
+static int get_pkg()
 {
 	static char pre_last, last;
 	static int start = 0, count = 2;
@@ -342,7 +362,7 @@ static int get_pkg(struct mm_work *mw)
 			start = 0;
 			count = 2;
 
-			if (decode_pkg(g_pkg, mw)) {
+			if (decode_pkg(g_pkg)) {
 #ifdef CFG_ENABLE_ACK
 				send_pkg(HRTO_P_NAK, NULL, 0, 1, 1);
 #endif
@@ -377,9 +397,26 @@ static int get_pkg(struct mm_work *mw)
 	return 0;
 }
 
+void set_default_freq() {
+	int idx;
+	for (idx = 0; idx < 80; idx++) {
+		freq_write(idx, (BE200_DEFAULT_FREQ/10) - 1);  // (X + 1) / 2
+	}
+}
+
+void set_all_chips_idle() {
+	int i;
+	for (i = 0; i < HRTO_DEFAULT_MINERS; i++) {
+		be200_reset(i);
+		freq_write(i, (BE200_DEFAULT_FREQ/10) - 1);  // (X + 1) / 2
+	}
+	delay(10);
+}
+
 int main(int argv,char * * argc)
 {
-	struct mm_work mm_work;
+//	struct mm_work mm_work;
+	struct mm_work *mw;
 	struct work work;
 	uint16_t idx;
 	
@@ -393,22 +430,17 @@ int main(int argv,char * * argc)
 	
 	debug32("MM-%s\n", MM_VERSION);
 	adjust_fan(200); /* ~= 20% */
+	set_all_chips_idle();
 	
-	// default freq
-	for (idx = 0; idx < 80; idx++) {
-		freq_write(idx, (BE200_DEFAULT_FREQ/10) - 1);  // (X + 1) / 2
-	}
-
 	while(1) {
-		get_pkg(&mm_work);
+		get_pkg();
 		
 		if (!g_new_stratum) {
 			continue;
 		}
 		
 		for (idx = 0; idx < CHIP_NUMBER; idx++) {
-//		for (idx = 16; idx < 32; idx++) {
-			get_pkg(&mm_work);
+			get_pkg();
 			if (!g_new_stratum) {
 				continue;
 			}
@@ -417,12 +449,13 @@ int main(int argv,char * * argc)
 				continue;
 			}
 			
-			mm_work.nonce2++;
-			miner_gen_nonce2_work(&mm_work, mm_work.nonce2, &work);
+			mw = &g_mm_works[g_pool_no];
+			mw->nonce2++;
+			miner_gen_nonce2_work(mw, mw->nonce2, &work);
 			be200_send_work(idx, &work);
 		}
 		
-		be200_read_result(&mm_work);
+		be200_read_result();
 	}
 	return 0;
 }
