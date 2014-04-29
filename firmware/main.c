@@ -435,8 +435,8 @@ int main(int argv,char * * argc)
 {
 	uint8_t c;
 	uint32_t wdg_time;
-	wdg_time = (CPU_FREQUENCY/1000)*700;
-	wdg_time = 0x3fffff0;
+	wdg_time = (CPU_FREQUENCY)*2;
+	wdg_time = 0xbebc2ff;
 	//uint16_t t;
 	
 	wdg_init(1);
