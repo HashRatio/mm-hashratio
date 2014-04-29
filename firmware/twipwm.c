@@ -86,9 +86,14 @@ void wdg_init(int enable)
 
 void wdg_feed(uint32_t value)
 {
-	//writel((0x3ffffff << 1)|0x00000001, &tp->wdg);
-	//writel((0xf << 1)|0x00000001, &tp->wdg);
 	writel(((value & 0x7fffffff) << 1)|0x1, &tp->wdg);
+}
+
+void wdg_feed_sec(uint32_t seconds)
+{	
+	uint32_t wdg_time;
+	wdg_time = CPU_FREQUENCY *seconds;
+	writel(((wdg_time & 0x7fffffff) << 1)|0x1, &tp->wdg);
 }
 
 void reset()

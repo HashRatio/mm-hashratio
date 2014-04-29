@@ -16,6 +16,8 @@ void write_pwm(uint8_t value);
 
 void wdg_init(int enable);
 void wdg_feed(uint32_t value);
+void wdg_feed_sec(uint32_t seconds);
+
 
 uint32_t read_fan0();
 uint32_t read_fan1();

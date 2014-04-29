@@ -434,15 +434,11 @@ int main3(int argv,char * * argc)
 int main(int argv,char * * argc)
 {
 	uint8_t c;
-	uint32_t wdg_time;
-	wdg_time = (CPU_FREQUENCY)*2;
-	wdg_time = 0xbebc2ff;
 	//uint16_t t;
 	
 	wdg_init(1);
-	wdg_feed(wdg_time);
-	debug32("%x\n",wdg_time);
-	//wdg_feed(0xffff);
+	wdg_feed_sec(10);
+	debug32("Init.\n");
 	
 	irq_setmask(0);
 	irq_enable(1);
