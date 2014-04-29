@@ -165,8 +165,7 @@ struct lm32_sha256 {
 #define LM32_TWIPWM_WDG_ENABLE	(1 << 0);
 /* [26:1] Feed Dog: 0x3~0x3ffffff;[WR] */
 
-#define LM32_TWI_REG_TEMP0	0x48
-#define LM32_TWI_REG_TEMP1	0x49
+#define LM32_TWI_REG_TEMP	0x48
 
 struct lm32_twipwm {
 	volatile unsigned int cr; /* TWI ctrl register */

@@ -712,7 +712,7 @@ output      SFT_OE_N ;
 input       FAN_IN0 ;
 input       FAN_IN1 ;
 // Enable the FT232 and HUB
-assign uartRESET_N = 1'b1;
+assign uartRESET_N = WATCH_DOG;
 assign hubRESET_N  = 1'b1;
 wire TIME0_INT ;
 wire TIME1_INT ;

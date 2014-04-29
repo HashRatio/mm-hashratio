@@ -8,13 +8,11 @@ NET "uartSIN"  LOC = K15;
 NET "uartSOUT" LOC = L14;
 NET "uartSOUT" PULLUP;
 
-#NET "uartRESET_N" LOC = F5;
-#NET "hubRESET_N" LOC = F6;
-
 # UART debug
 NET "uart_debugSIN" LOC = F1;
 NET "uart_debugSOUT" LOC = E3;
 NET "uart_debugSOUT" PULLUP;
+NET "uartRESET_N" LOC = F7;
 
 #NET   "SFT_SHCP" LOC = K16;
 #NET   "SFT_DS" LOC = M15;
