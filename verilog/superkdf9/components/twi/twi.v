@@ -97,7 +97,7 @@ assign PWM = pwm_cnt < reg_pwm ;
 // WDG
 //-----------------------------------------------------
 reg wdg_en ;
-reg [25:0] wdg_cnt ;
+reg [30:0] wdg_cnt ;
 
 always @ ( posedge CLK_I or posedge RST_I ) begin
 	if( RST_I )
@@ -108,9 +108,9 @@ end
 
 always @ ( posedge CLK_I or posedge RST_I ) begin
 	if( RST_I )
-		wdg_cnt <= 26'b0 ;
-	else if( wdg_wr_en && (wdg_en || TWI_DAT_I[0]) )
-		wdg_cnt <= TWI_DAT_I[26:1] ;
+		wdg_cnt <= 31'b0 ;
+	else if( wdg_wr_en && (wdg_en || TWI_DAT_I[0]))
+		wdg_cnt <= TWI_DAT_I[31:1] ;
 	else if( |wdg_cnt )
 		wdg_cnt <= wdg_cnt - 1 ;
 end

@@ -86,7 +86,14 @@ void wdg_init(int enable)
 
 void wdg_feed(uint32_t value)
 {
-	writel(((value & 0x3ffffff) << 1), &tp->wdg);
+	writel(((value & 0x7fffffff) << 1)|0x1, &tp->wdg);
+}
+
+void wdg_feed_sec(uint32_t seconds)
+{	
+	uint32_t wdg_time;
+	wdg_time = CPU_FREQUENCY *seconds;
+	writel(((wdg_time & 0x7fffffff) << 1)|0x1, &tp->wdg);
 }
 
 void reset()
@@ -120,12 +127,8 @@ void adjust_fan(int32_t pwm)
 	write_pwm(value);
 }
 
-uint16_t read_temp0()
+uint16_t read_temp()
 {
-	return (twi_read_2byte(LM32_TWI_REG_TEMP0) >> 4) / 16;
+	return twi_read_2byte(LM32_TWI_REG_TEMP);
 }
 
-uint16_t read_temp1()
-{
-	return (twi_read_2byte(LM32_TWI_REG_TEMP0) >> 4) / 16;
-}

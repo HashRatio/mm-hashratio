@@ -89,7 +89,7 @@ static void encode_pkg(uint8_t *p, int type, uint8_t *buf, unsigned int len, int
 		memcpy(data, buf, len);
 		break;
 	case HRTO_P_STATUS:
-		tmp = read_temp0() << 16 | read_temp1();
+		tmp = read_temp() << 16 | read_temp();
 		memcpy(data + 0, &tmp, 4);
 
 		tmp = read_fan0() << 16 | read_fan1();
@@ -459,3 +459,29 @@ int main(int argv,char * * argc)
 	}
 	return 0;
 }
+
+int main3(int argv,char * * argc)
+{
+	uint8_t c;
+	//uint16_t t;
+	
+	wdg_init(1);
+	wdg_feed_sec(10);
+	debug32("Init.\n");
+	
+	irq_setmask(0);
+	irq_enable(1);
+	
+	uart_init();
+	uart1_init();
+
+	
+	while(1){
+		c = uart1_read();
+		//t = read_temp();
+		uart1_writeb(c);
+		//wdg_feed((CPU_FREQUENCY/1000)*200);
+	}
+	return 0;
+}
+
