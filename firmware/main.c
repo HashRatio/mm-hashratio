@@ -421,6 +421,8 @@ int main(int argv,char * * argc)
 	uint16_t idx;
 	
 //	uint8_t freq_arr[] = {28, 34, 32, 28, 30, 28, 34, 34, 30, 26, 30, 34, 32, 26, 28, 28};
+	wdg_init(1);
+	wdg_feed_sec(10);
 	
 	irq_setmask(0);
 	irq_enable(1);
@@ -433,6 +435,8 @@ int main(int argv,char * * argc)
 	set_all_chips_idle();
 	
 	while(1) {
+		wdg_feed_sec(10);
+		
 		get_pkg();
 		
 		if (!g_new_stratum) {
@@ -456,6 +460,7 @@ int main(int argv,char * * argc)
 		}
 		
 		be200_read_result();
+		
 	}
 	return 0;
 }
@@ -467,6 +472,7 @@ int main3(int argv,char * * argc)
 	
 	wdg_init(1);
 	wdg_feed_sec(10);
+	//wdg_feed(0x1fffff00);
 	debug32("Init.\n");
 	
 	irq_setmask(0);
