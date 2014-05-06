@@ -361,15 +361,13 @@ module mm (
 , uartSIN_led
 , uartSOUT_led
 
-// , NONCE_led
-
 , uartRXRDY_N
 , uartTXRDY_N
 , uartRESET_N
 , hubRESET_N
 
-, gpioPIO_IN
-, gpioPIO_OUT
+//, gpioPIO_IN
+//, gpioPIO_OUT
 , uart_debugSIN
 , uart_debugSOUT
 
@@ -448,6 +446,8 @@ module mm (
 
 , PWM1
 , FAN_IN1
+
+, LED
 );
 output POWER_ON ;
 output PWM0 ;
@@ -673,8 +673,9 @@ wire   gpioGPIO_ERR_O;
 wire   gpioGPIO_RTY_O;
 wire gpioGPIO_en;
 wire gpioIRQ_O;
-input [6:0] gpioPIO_IN;
-output [3:0] gpioPIO_OUT;
+output [7:0] LED;
+//input [6:0] gpioPIO_IN;
+//output [3:0] gpioPIO_OUT;
 
 wire [7:0] uart_debugUART_DAT_O;
 wire   uart_debugUART_ACK_O;
@@ -1571,8 +1572,11 @@ assign twiTWI_en = (SHAREDBUS_ADR_I[31:6] == 26'b10000000000000000000011000);//D
 assign TWI_SCL = TWI_SCL_O == 1'b0 ? 1'b0 : 1'bz ;//p85
 assign TWI_SDA = TWI_SDA_OEN == 1'b0 ? 1'b0 : 1'bz ;//p8
 wire PWM_w;
+wire [7:0] gpioGPIO_IN_w;
+wire [23:0] gpioGPIO_OUT_w;
 assign PWM0 = PWM_w;
 assign PWM1 = PWM_w;
+assign LED = gpioGPIO_OUT_w[7:0];
 
 twi u_twi(
 // system clock and reset
@@ -1610,8 +1614,8 @@ twi u_twi(
 /*input         */ .FAN_IN1     (FAN_IN1                     ) ,
 /*output        */ .TIME0_INT   (TIME0_INT                   ) ,
 /*output        */ .TIME1_INT   (TIME1_INT                   ) ,
-/*output        */ .GPIO_OUT    (gpioPIO_OUT                 ) ,
-/*input  [6:0]  */ .GPIO_IN     (gpioPIO_IN                  )
+/*output [23:0] */ .GPIO_OUT    (gpioGPIO_OUT_w               ) ,
+/*input  [7:0]  */ .GPIO_IN     (gpioGPIO_IN_w               )
 ) ;
 
 assign superkdf9interrupt_n[3] = !uartINTR ;

@@ -1,6 +1,6 @@
 # Global controls
 NET "ex_clk_i" LOC = J16;
-NET "ex_clk_o" LOC = F4;
+#NET "ex_clk_o" LOC = F4;
 #NET "INT" LOC = R7;
 
 # UART
@@ -12,7 +12,7 @@ NET "uartSOUT" PULLUP;
 NET "uart_debugSIN" LOC = F1;
 NET "uart_debugSOUT" LOC = E3;
 NET "uart_debugSOUT" PULLUP;
-NET "uartRESET_N" LOC = F7;
+#NET "uartRESET_N" LOC = F7;
 
 #NET   "SFT_SHCP" LOC = K16;
 #NET   "SFT_DS" LOC = M15;
@@ -195,6 +195,16 @@ NET "PWM1" LOC = D5; # D5 FPGA OUTPUT
 NET "FAN_IN1" LOC = C7;#E6 FPGA INPUT
 
 NET "*" IOSTANDARD = LVCMOS33;
+
+#LED
+NET "LED[0]" LOC = F4; 
+NET "LED[1]" LOC = F5;
+NET "LED[2]" LOC = F6;
+NET "LED[3]" LOC = F7;
+NET "LED[4]" LOC = B15;
+NET "LED[5]" LOC = B16;
+NET "LED[6]" LOC = C15;
+NET "LED[7]" LOC = C16;
 
 NET "ex_clk_i" TNM_NET = "ex_clk_i";
 TIMESPEC TS_clk = PERIOD "ex_clk_i" 40 ns HIGH 50 %;

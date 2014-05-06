@@ -420,7 +420,6 @@ int main(int argv,char * * argc)
 	struct work work;
 	uint16_t idx;
 	
-//	uint8_t freq_arr[] = {28, 34, 32, 28, 30, 28, 34, 34, 30, 26, 30, 34, 32, 26, 28, 28};
 	wdg_init(1);
 	wdg_feed_sec(10);
 	
@@ -429,6 +428,8 @@ int main(int argv,char * * argc)
 	
 	uart_init();
 	uart1_init();
+
+	led(0xAA);
 	
 	debug32("MM-%s\n", MM_VERSION);
 	adjust_fan(200); /* ~= 20% */
