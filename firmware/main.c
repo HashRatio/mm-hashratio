@@ -175,7 +175,7 @@ static int decode_pkg(uint8_t *p)
 		return 1;
 	}
 
-//	timer_set(0, IDLE_TIME);
+	timer_set(0, IDLE_TIME);
 	switch (p[2]) {
 	case HRTO_P_DETECT:
 		g_new_stratum = 0;
@@ -434,11 +434,22 @@ int main(int argv,char * * argc)
 	debug32("MM-%s\n", MM_VERSION);
 	adjust_fan(200); /* ~= 20% */
 	set_all_chips_idle();
-	
+	timer_set(1,2);
 	while(1) {
 		wdg_feed_sec(10);
 		
 		get_pkg();
+
+		if(!timer_read(1)){
+			debug32("Temperature:0x%04x\n",read_temp());
+			timer_set(1,2);
+		}
+
+		if(!timer_read(0) && g_new_stratum){
+			g_new_stratum = 0;
+			set_all_chips_idle();
+			adjust_fan(200);
+		}
 		
 		if (!g_new_stratum) {
 			continue;
