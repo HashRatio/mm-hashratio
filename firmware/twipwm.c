@@ -129,6 +129,6 @@ void adjust_fan(int32_t pwm)
 
 uint16_t read_temp()
 {
-	return twi_read_2byte(LM32_TWI_REG_TEMP);
+	return twi_read_2byte(LM32_TWI_REG_TEMP)>>8;
 }
 
