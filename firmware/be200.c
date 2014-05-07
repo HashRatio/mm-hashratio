@@ -106,7 +106,7 @@ uint8_t be200_get_result(uint8_t idx, uint8_t nonce_mask,uint32_t * result)
 			((uint32_t)be200_cmd_rd(idx,nonce_start_reg + 1)   << 8)  |
 			(((uint32_t)be200_cmd_rd(idx,nonce_start_reg + 0)  << 0) + 1);
 	
-	be200_cmd_rd(idx, BE200_REG_CLEAR);  // 使用read方式，可以清理nonce_mask
+	be200_cmd_rd(idx, BE200_REG_CLEAR);
 	return 1;
 }
 

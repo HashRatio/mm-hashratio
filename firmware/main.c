@@ -32,7 +32,7 @@
 #include "utils.h"
 
 #define MAX_POOL_NUM 3
-#define IDLE_TIME	5	/* Seconds */
+#define IDLE_TIME	60	/* Seconds */
 
 static uint8_t g_pkg[HRTO_P_COUNT];
 static uint8_t g_act[HRTO_P_COUNT];
@@ -175,7 +175,6 @@ static int decode_pkg(uint8_t *p)
 		return 1;
 	}
 
-	timer_set(0, IDLE_TIME);
 	switch (p[2]) {
 	case HRTO_P_DETECT:
 		g_new_stratum = 0;
@@ -229,6 +228,7 @@ static int decode_pkg(uint8_t *p)
 	case HRTO_P_REQUIRE:
 		break;
 	case HRTO_P_SET:
+		timer_set(0, IDLE_TIME);
 		memcpy(&tmp, data, 4);
 		adjust_fan(tmp);
 		
@@ -236,8 +236,11 @@ static int decode_pkg(uint8_t *p)
 		memcpy(&tmp, data + 4, 4);
 		if (tmp > 100 && tmp <= 750 && tmp != g_asic_freq) {
 			for (i = 0; i < HRTO_DEFAULT_MINERS; i++) {
-				be200_reset(i);
-				freq_write(i, tmp/10 - 1);  // (X + 1) / 2
+				if(!be200_is_idle(i)){
+					//be200_reset(i);
+					freq_write(i, tmp/10 - 1);  // (X + 1) / 2
+				}
+				be200_cmd_rd(idx, BE200_REG_CLEAR);
 			}
 			g_asic_freq = tmp;
 			debug32("set freq: %d, multi: %d", tmp, tmp/10 - 1);
@@ -447,7 +450,7 @@ int main(int argv,char * * argc)
 
 		if(!timer_read(0) && g_new_stratum){
 			g_new_stratum = 0;
-			set_all_chips_idle();
+			be200_ret_produce = be200_ret_consume = 0;
 			adjust_fan(200);
 		}
 		
