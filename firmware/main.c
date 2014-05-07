@@ -42,6 +42,9 @@ static int g_hw_work     = 0;
 static int g_total_nonce = 0;
 static int g_asic_freq   = BE200_DEFAULT_FREQ;
 static int g_pool_no     = 0;
+static int g_temp_high = 60;
+static int g_temp_normal = 50;
+static int g_working = 0;
 static struct mm_work g_mm_works[MAX_POOL_NUM];
 
 static uint32_t g_nonce2_offset = 0;
@@ -422,6 +425,7 @@ int main(int argv,char * * argc)
 	struct mm_work *mw;
 	struct work work;
 	uint16_t idx;
+	uint16_t tmp = 0;
 	
 	wdg_init(1);
 	wdg_feed_sec(10);
@@ -438,21 +442,37 @@ int main(int argv,char * * argc)
 	adjust_fan(200); /* ~= 20% */
 	set_all_chips_idle();
 	timer_set(1,2);
+	g_working = 1;
+	
 	while(1) {
 		wdg_feed_sec(10);
 		
 		get_pkg();
 
 		if(!timer_read(1)){
-			debug32("Temperature:0x%04x\n",read_temp());
-			timer_set(1,2);
+			tmp = read_temp();
+			timer_set(1,5);
+			debug32("Temperature:%d\n",tmp);
 		}
-
+		if(tmp >= g_temp_high){
+			g_working = 0;
+			g_new_stratum = 0;
+			adjust_fan(1000);
+		}else if(tmp < g_temp_high && tmp >= g_temp_normal){
+			if(!g_working){
+				g_new_stratum = 0;
+				adjust_fan(1000);
+			}
+		}else{
+			g_working = 1;
+		}
+			
 		if(!timer_read(0) && g_new_stratum){
 			g_new_stratum = 0;
 			be200_ret_produce = be200_ret_consume = 0;
 			adjust_fan(200);
 		}
+		
 		
 		if (!g_new_stratum) {
 			continue;
