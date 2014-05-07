@@ -74,8 +74,7 @@ void miner_gen_nonce2_work(struct mm_work *mw, uint32_t nonce2, struct work *wor
 
 	tmp32 = bswap_32(nonce2);
 	memcpy(mw->coinbase + mw->nonce2_offset, (uint8_t *)(&tmp32), sizeof(uint32_t));
-	work->nonce2  = nonce2;
-	work->pool_no = mw->pool_no;
+	work->nonce2 = nonce2;
 
 	dsha256(mw->coinbase, mw->coinbase_len, merkle_root);
 	memcpy(merkle_sha, merkle_root, 32);

@@ -475,6 +475,7 @@ int main(int argv,char * * argc)
 			mw = &g_mm_works[g_cur_mm_idx];
 			mw->nonce2++;
 			miner_gen_nonce2_work(mw, mw->nonce2, &work);
+			work.mm_idx = g_cur_mm_idx;
 			be200_send_work(idx, &work);
 			
 			get_pkg();
