@@ -20,9 +20,7 @@
 
 struct work {
 	uint32_t nonce2;
-	uint32_t pool_no;
-//	uint32_t job_id;
-//	uint8_t	task_id[8];	/* Nonce2 + job_id etc */
+	uint32_t mm_idx;
 
 	uint8_t data[44];     /* midstate[32] + data[12] */
 	uint8_t header[128];  /* Block header */

@@ -38,15 +38,14 @@
 
 struct chip_status {
 	uint32_t nonce2;
-	uint32_t pool_no;
+	uint32_t mm_idx;
 };
 
 struct be200_result {
 	uint32_t nonce2;
 	uint32_t nonce;
 	uint8_t idx;
-//	uint32_t job_id;
-	uint32_t pool_no;
+	uint32_t mm_idx;
 };
 
 
