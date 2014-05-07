@@ -299,7 +299,7 @@ uint32_t be200_read_result()
 			continue;
 		
 		be200_get_result(idx, nonce_mask, &nonce);
-		debug32("chip idx: %d, nonce: %08x\n", idx, nonce);
+		debug32("chip idx: %d, nonce: %08x, pool: %02x\n", idx, nonce, miner_status[idx].pool_no);
 		
 		/* check the validation of the nonce*/
 		for (i = 0; i < sizeof(diff_nonce)/sizeof(diff_nonce[0]); i++) {
@@ -317,7 +317,7 @@ uint32_t be200_read_result()
 		if (!found /* NONCE_HW */) {
 			g_hw_work++;
 			debug32("========= invalid nonce =========\n");
-		} else {
+		} else if (nonce_check == NONCE_DIFF) {
 			g_local_work++;
 			g_total_nonce++;
 		
