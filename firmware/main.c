@@ -31,7 +31,7 @@
 #include "hexdump.c"
 #include "utils.h"
 
-#define MAX_POOL_NUM 3
+#define MM_BUF_NUM  3
 #define IDLE_TIME	60	/* Seconds */
 
 static uint8_t g_pkg[HRTO_P_COUNT];
@@ -41,11 +41,11 @@ static int g_local_work  = 0;
 static int g_hw_work     = 0;
 static int g_total_nonce = 0;
 static int g_asic_freq   = BE200_DEFAULT_FREQ;
-static int g_pool_no     = 0;
-static int g_temp_high = 60;
+static int g_cur_mm_idx  = 0;
+static int g_temp_high   = 60;
 static int g_temp_normal = 50;
 static int g_working = 0;
-static struct mm_work g_mm_works[MAX_POOL_NUM];
+static struct mm_work g_mm_works[MM_BUF_NUM];
 
 static uint32_t g_nonce2_offset = 0;
 static uint32_t g_nonce2_range  = 0xffffffff;
@@ -134,7 +134,7 @@ static void be200_polling()
 	data = &be200_result_buff[be200_ret_consume];
 	be200_ret_consume = (be200_ret_consume + 1) & BE200_RET_RINGBUFFER_MASK_RX;
 	
-	mw = &g_mm_works[data->pool_no];
+	mw = &g_mm_works[data->mm_idx];
 	
 	memset(buf, 0, sizeof(buf));
 	tmp = data->idx;
@@ -148,8 +148,8 @@ static void be200_polling()
 	// job_id
 	memcpy(buf + 16, mw->job_id, 4);
 	
-	debug32("polling, miner: %02x, pool_no: %02x, nonce2: %08x, nonce: %08x\n",
-			data->idx, mw->pool_no, data->nonce2, data->nonce);
+	debug32("polling, miner: %02x, pool_no: %02x, mm_idx: %02x, nonce2: %08x, nonce: %08x\n",
+			data->idx, mw->pool_no, data->mm_idx, data->nonce2, data->nonce);
 
 	send_pkg(HRTO_P_NONCE, buf, HRTO_P_DATA_LEN, 1, 1);
 	return;
@@ -162,7 +162,10 @@ static int decode_pkg(uint8_t *p)
 	unsigned int actual_crc;
 	int idx, cnt, i;
 	uint32_t tmp;
-	struct mm_work *mw = &g_mm_works[g_pool_no];
+	struct mm_work *mw;
+	
+	int mm_write_idx = (g_cur_mm_idx + 1) % MM_BUF_NUM;  // ring buf index
+	mw = &g_mm_works[mm_write_idx];  // point to next mm_work
 
 	uint8_t *data = p + 5;
 	idx = p[3];
@@ -183,12 +186,6 @@ static int decode_pkg(uint8_t *p)
 		g_new_stratum = 0;
 		break;
 	case HRTO_P_STATIC:
-		// swith pool_no
-		memcpy(&g_pool_no, data + 24, 4);
-		g_pool_no = g_pool_no % MAX_POOL_NUM;
-		mw = &g_mm_works[g_pool_no];
-		g_new_stratum = 0;
-		
 		memcpy(&mw->coinbase_len, data, 4);
 		memcpy(&mw->nonce2_offset, data + 4, 4);
 		memcpy(&mw->nonce2_size, data + 8, 4);
@@ -235,27 +232,23 @@ static int decode_pkg(uint8_t *p)
 		memcpy(&tmp, data, 4);
 		adjust_fan(tmp);
 		
-		// set asic freq
+		// set asic freq if need
 		memcpy(&tmp, data + 4, 4);
 		if (tmp > 100 && tmp <= 750 && tmp != g_asic_freq) {
 			for (i = 0; i < HRTO_DEFAULT_MINERS; i++) {
-				if(!be200_is_idle(i)){
-					//be200_reset(i);
-					freq_write(i, tmp/10 - 1);  // (X + 1) / 2
-				}
-				be200_cmd_rd(idx, BE200_REG_CLEAR);
+				freq_write(i, tmp/10 - 1);  // (X + 1) / 2
 			}
 			g_asic_freq = tmp;
 			debug32("set freq: %d, multi: %d", tmp, tmp/10 - 1);
 		}
-
+		
 		memcpy(&g_nonce2_offset, data + 8, 4);
 		memcpy(&g_nonce2_range, data + 12, 4);
 
 		mw->nonce2 = g_nonce2_offset + g_nonce2_range;
 
 		// reset results ptr
-		be200_ret_produce = be200_ret_consume = 0;
+		g_cur_mm_idx = (g_cur_mm_idx + 1) % MM_BUF_NUM;
 		g_new_stratum = 1;
 		
 		debug32("HRTO_P_SET: idx: %d, cnt: %d\n", idx, cnt);
@@ -274,18 +267,16 @@ static int decode_pkg(uint8_t *p)
 
 uint32_t be200_send_work(uint8_t idx, struct work *w)
 {
-	// clear nonce_mask register
-	be200_cmd_rd(idx, BE200_REG_CLEAR);
+	be200_cmd_rd(idx, BE200_REG_CLEAR);  // clear nonce_mask register
 	
 	be200_input_task(idx, w->data);
 	be200_start(idx);
 	
 	miner_status[idx].nonce2  = w->nonce2;
-	miner_status[idx].pool_no = w->pool_no;
+	miner_status[idx].mm_idx  = w->mm_idx;
 	return 1;
 }
 
-//uint32_t be200_read_result(struct mm_work *mw)
 uint32_t be200_read_result()
 {
 	uint8_t idx;
@@ -299,19 +290,17 @@ uint32_t be200_read_result()
 	int8_t diff_nonce[] = {0, -1, 1, -2, 2, -3, 3, 4, -4};
 
 	for (idx = 0; idx < CHIP_NUMBER; idx++) {
-//	for (idx = 16; idx < 32; idx++) {
 		ready = be200_get_done(idx, &nonce_mask);
-		if(ready == 0)
+		if (ready == 0)
 			continue;
 		
 		be200_get_result(idx, nonce_mask, &nonce);
-		debug32("chip idx: %d, nonce: %08x, pool: %02x\n", idx, nonce, miner_status[idx].pool_no);
+		debug32("chip idx: %d, nonce: %08x, mm_idx: %02x\n", idx, nonce, miner_status[idx].mm_idx);
 		
 		/* check the validation of the nonce*/
 		for (i = 0; i < sizeof(diff_nonce)/sizeof(diff_nonce[0]); i++) {
 			nonce_new = nonce + diff_nonce[i];
-//			nonce_check = test_nonce(mw, miner_status[idx].nonce2, nonce_new);
-			nonce_check = test_nonce(&g_mm_works[miner_status[idx].pool_no],
+			nonce_check = test_nonce(&g_mm_works[miner_status[idx].mm_idx],
 									 miner_status[idx].nonce2, nonce_new);
 			if (nonce_check == NONCE_DIFF) {
 				nonce = nonce_new;
@@ -320,11 +309,9 @@ uint32_t be200_read_result()
 			}
 		}
 		
-		if (!found /* NONCE_HW */) {
-			g_hw_work++;
-			debug32("========= invalid nonce =========\n");
-		} else if (nonce_check == NONCE_DIFF) {
-			g_local_work++;
+		g_local_work++;
+		
+		if (likely(nonce_check == NONCE_DIFF)) {
 			g_total_nonce++;
 		
 			/* put the valid nonce into be200 ring buffer */
@@ -332,21 +319,25 @@ uint32_t be200_read_result()
 			be200_ret_produce = (be200_ret_produce + 1) & BE200_RET_RINGBUFFER_MASK_RX;
 
 			data->idx = idx;
-			data->nonce2  = miner_status[idx].nonce2;
-			data->pool_no = miner_status[idx].pool_no;
-			data->nonce   = nonce;
+			data->nonce2 = miner_status[idx].nonce2;
+			data->mm_idx = miner_status[idx].mm_idx;
+			data->nonce  = nonce;
 			
 			debug32("be200_read_result, g_local_work: %d, miner: %d, "
-					"pool_no: %02x, nonce2: %08x, nonce: %08x, total:%d\n",
-					g_local_work, data->idx, data->pool_no,
+					"mm_idx: %02x, nonce2: %08x, nonce: %08x, total:%d\n",
+					g_local_work, data->idx, data->mm_idx,
 					data->nonce2, data->nonce, g_total_nonce);
 		}
-	}
+		else if (unlikely(!found) /* NONCE_HW */) {
+			g_hw_work++;
+			debug32("========= invalid nonce =========\n");
+		}
+	} /* /for */
 	
 	return 0;
 }
 
-//static int get_pkg(struct mm_work *mw)
+
 static int get_pkg()
 {
 	static char pre_last, last;
@@ -421,7 +412,6 @@ void set_all_chips_idle() {
 
 int main(int argv,char * * argc)
 {
-//	struct mm_work mm_work;
 	struct mm_work *mw;
 	struct work work;
 	uint16_t idx;
@@ -444,26 +434,26 @@ int main(int argv,char * * argc)
 	timer_set(1,2);
 	g_working = 1;
 	
-	while(1) {
+	while (1) {
 		wdg_feed_sec(10);
 		
 		get_pkg();
 
-		if(!timer_read(1)){
+		if (!timer_read(1)) {
 			tmp = read_temp();
 			timer_set(1,5);
 			debug32("Temperature:%d\n",tmp);
 		}
-		if(tmp >= g_temp_high){
+		if (tmp >= g_temp_high) {
 			g_working = 0;
 			g_new_stratum = 0;
 			adjust_fan(1000);
-		}else if(tmp < g_temp_high && tmp >= g_temp_normal){
+		} else if (tmp < g_temp_high && tmp >= g_temp_normal) {
 			if(!g_working){
 				g_new_stratum = 0;
 				adjust_fan(1000);
 			}
-		}else{
+		} else {
 			g_working = 1;
 		}
 			
@@ -473,30 +463,26 @@ int main(int argv,char * * argc)
 			adjust_fan(200);
 		}
 		
-		
-		if (!g_new_stratum) {
+		if (unlikely(!g_new_stratum)) {
 			continue;
 		}
 		
 		for (idx = 0; idx < CHIP_NUMBER; idx++) {
-			get_pkg();
-			if (!g_new_stratum) {
-				continue;
-			}
-			
 			if (!be200_is_idle(idx)) {
 				continue;
 			}
 			
-			mw = &g_mm_works[g_pool_no];
+			mw = &g_mm_works[g_cur_mm_idx];
 			mw->nonce2++;
 			miner_gen_nonce2_work(mw, mw->nonce2, &work);
 			be200_send_work(idx, &work);
+			
+			get_pkg();
 		}
 		
 		be200_read_result();
-		
-	}
+	} /* while(1) */
+	
 	return 0;
 }
 
