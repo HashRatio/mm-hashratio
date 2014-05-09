@@ -20,24 +20,15 @@
 
 struct work {
 	uint32_t nonce2;
-	uint8_t	task_id[8];	/* Nonce2 + job_id etc */
-	uint8_t	step[4];
-	uint8_t	timeout[4];
-	uint8_t	clock[8];
+	uint32_t mm_idx;
 
-	uint8_t a2[4];
-	uint8_t e0[4];
-	uint8_t e1[4];
-	uint8_t e2[4];
-	uint8_t a0[4];
-	uint8_t a1[4];
-	uint8_t data[44]; 	/* midstate[32] + data[12] */
-	uint8_t header[128]; 	/* Block header */
+	uint8_t data[44];     /* midstate[32] + data[12] */
+	uint8_t header[128];  /* Block header */
 };
 
 struct result {
-	uint8_t miner_id[4];      /* The miner ID */
-	uint8_t	task_id[8];	 /* Same with work task_id */
+	uint8_t miner_id[4];  /* The miner ID */
+	uint8_t	task_id[8];   /* Same with work task_id */
 	uint8_t	timeout[4];
 	uint8_t nonce[4];
 };
@@ -46,7 +37,7 @@ struct mm_work {
 	uint8_t job_id[4];
 
 	size_t coinbase_len;
-	uint8_t coinbase[AVA2_P_COINBASE_SIZE];
+	uint8_t coinbase[HRTO_P_COINBASE_SIZE];
 
 	uint32_t nonce2;
 	int nonce2_offset;
@@ -54,7 +45,7 @@ struct mm_work {
 
 	int merkle_offset;
 	int nmerkles;
-	uint8_t merkles[AVA2_P_MERKLES_COUNT][32];
+	uint8_t merkles[HRTO_P_MERKLES_COUNT][32];
 
 	uint8_t header[128];
 
@@ -66,7 +57,8 @@ struct mm_work {
 
 void miner_init_work(struct mm_work *mw, struct work *work);
 void miner_gen_nonce2_work(struct mm_work *mw, uint32_t nonce2, struct work *work);
-int test_nonce(struct mm_work *mw, struct result *ret);
+//int test_nonce(struct mm_work *mw, struct result *ret);
+int test_nonce(struct mm_work *mw, uint32_t nonce2, uint32_t nonce);
 
 void set_asic_freq(uint32_t value);
 uint32_t get_asic_freq();

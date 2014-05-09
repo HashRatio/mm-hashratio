@@ -9,13 +9,15 @@
 #ifndef _SYSTEM_CONFIG_H_
 #define _SYSTEM_CONFIG_H_
 
-#define AVA2_DEFAULT_MODULES	3
-#define AVA2_DEFAULT_MINERS	10
+// for test build
+//#define AVA2_DEFAULT_MODULES 3
+//#define AVA2_DEFAULT_MINERS  20
+//#define AVA2_P_TEST_RET   26
 
-#define ASIC_FREQUENCY	1500
-#define ASIC_COUNT	7
+//#define BE200_ASIC_FREQUENCY 280
+//#define ASIC_COUNT	7
 
-#define CPU_FREQUENCY		(128 * 1000 * 1000) /* 50Mhz */
+#define CPU_FREQUENCY		(100 * 1000 * 1000) /* 50Mhz */
 #define UART_BAUD_RATE          (115200)
 
 /* Interrupt
@@ -37,14 +39,23 @@
 #define SHIFTER_BASE	(0x80000614)
 #define TIMER_BASE		(0x80000620)
 #define SPI1_BASE		(0x80000700)
+#define SPI2_BASE		(0x80000800)
+#define SPI3_BASE		(0x80000900)
+#define SPI4_BASE		(0x80000A00)
+#define SPI5_BASE		(0x80000B00)
+#define SPI6_BASE		(0x80000C00)
+#define SPI7_BASE		(0x80000D00)
+#define SPI8_BASE		(0x80000E00)
+#define SPI9_BASE		(0x80000F00)
+
 
 /* SPI */
-#define LM32_SPI_STAT_ROE	(1 << 2)
-#define LM32_SPI_STAT_TOE	(1 << 3)
-#define LM32_SPI_STAT_TMT	(1 << 4)
-#define LM32_SPI_STAT_TRDY	(1 << 5)
-#define LM32_SPI_STAT_RRDY	(1 << 6)
-#define LM32_SPI_STAT_ERR	(1 << 7)
+#define LM32_SPI_STAT_ROE	(1 << 3)
+#define LM32_SPI_STAT_TOE	(1 << 4)
+#define LM32_SPI_STAT_TMT	(1 << 5)
+#define LM32_SPI_STAT_TRDY	(1 << 6)
+#define LM32_SPI_STAT_RRDY	(1 << 7)
+#define LM32_SPI_STAT_ERR	(1 << 8)
 
 #define LM32_SPI_CTRL_IROE	(1 << 0)
 #define LM32_SPI_CTRL_ITOE	(1 << 1)
@@ -53,18 +64,21 @@
 #define LM32_SPI_CTRL_IE	(1 << 5)
 #define LM32_SPI_CTRL_SSO	(1 << 7)
 
+/*struct lm32_spi {
+	volatile unsigned int rx;
+	volatile unsigned int tx;
+	volatile unsigned int status;
+	volatile unsigned int control;
+	volatile unsigned int ssmask;
+};*/
+
 struct lm32_spi {
 	volatile unsigned int rx;
-	//volatile unsigned char rsv1[3];
 	volatile unsigned int tx;
-	//volatile unsigned char rsv2[3];
 	volatile unsigned int status;
-	//volatile unsigned char rsv3[3];
 	volatile unsigned int control;
-	//volatile unsigned char rsv4[3];
 	volatile unsigned int ssmask;
 };
-
 
 /* UART */
 #define LM32_UART_IER_RBRI	(1 << 0)
@@ -130,13 +144,13 @@ struct lm32_sha256 {
 #define LM32_ALINK_STATE_RXCOUNT	(0x3FF00000)
 #define LM32_ALINK_STATE_TEST	(1 << 31)
 
-struct lm32_alink {
-	volatile unsigned int tx;
-	volatile unsigned int state;	/* Read only */
-	volatile unsigned int en;
-	volatile unsigned int busy;	/* Read only */
-	volatile unsigned int rx;
-};
+//struct lm32_alink {
+//	volatile unsigned int tx;
+//	volatile unsigned int state;	/* Read only */
+//	volatile unsigned int en;
+//	volatile unsigned int busy;	/* Read only */
+//	volatile unsigned int rx;
+//};
 
 /* TWI PWM */
 #define LM32_TWIPWM_CR_ENABLE	(1 << 0)
@@ -151,8 +165,7 @@ struct lm32_alink {
 #define LM32_TWIPWM_WDG_ENABLE	(1 << 0);
 /* [26:1] Feed Dog: 0x3~0x3ffffff;[WR] */
 
-#define LM32_TWI_REG_TEMP0	0x48
-#define LM32_TWI_REG_TEMP1	0x49
+#define LM32_TWI_REG_TEMP	0x48
 
 struct lm32_twipwm {
 	volatile unsigned int cr; /* TWI ctrl register */

@@ -36,8 +36,8 @@ module twi(
     output         TIME0_INT   ,
     output         TIME1_INT   ,
 
-    output [3:0]   GPIO_OUT    ,
-    input  [6:0]   GPIO_IN
+    output [23:0]   GPIO_OUT    ,
+    input  [7:0]   GPIO_IN
 );
 
 assign TWI_ERR_O = 1'b0 ;
@@ -97,7 +97,7 @@ assign PWM = pwm_cnt < reg_pwm ;
 // WDG
 //-----------------------------------------------------
 reg wdg_en ;
-reg [25:0] wdg_cnt ;
+reg [30:0] wdg_cnt ;
 
 always @ ( posedge CLK_I or posedge RST_I ) begin
 	if( RST_I )
@@ -108,9 +108,9 @@ end
 
 always @ ( posedge CLK_I or posedge RST_I ) begin
 	if( RST_I )
-		wdg_cnt <= 26'b0 ;
-	else if( wdg_wr_en && (wdg_en || TWI_DAT_I[0]) )
-		wdg_cnt <= TWI_DAT_I[26:1] ;
+		wdg_cnt <= 31'b0 ;
+	else if( wdg_wr_en && (wdg_en || TWI_DAT_I[0]))
+		wdg_cnt <= TWI_DAT_I[31:1] ;
 	else if( |wdg_cnt )
 		wdg_cnt <= wdg_cnt - 1 ;
 end
@@ -282,17 +282,18 @@ end
 
 assign TIME0_INT = ~tim_mask0 && tim_done0 ;
 assign TIME1_INT = ~tim_mask1 && tim_done1 ;
+
 //-----------------------------------------------------
 // GPIO
 //-----------------------------------------------------
-reg [3:0] reg_gout ;
-reg [6:0] reg_gin  ;
-wire [31:0] reg_gpio = {21'b0,reg_gin,reg_gout} ;
+reg [23:0] reg_gout ;
+reg [7:0] reg_gin  ;
+wire [31:0] reg_gpio = {reg_gin,reg_gout} ;
 always @ ( posedge CLK_I or posedge RST_I ) begin
 	if( RST_I )
 		reg_gout <= 'b0 ;
 	else if( gpio_wr_en )
-		reg_gout <= TWI_DAT_I[3:0] ;
+		reg_gout <= TWI_DAT_I[23:0] ;
 end
 assign GPIO_OUT = reg_gout ;
 always @ ( posedge CLK_I ) begin

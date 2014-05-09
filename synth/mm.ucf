@@ -1,104 +1,24 @@
 # Global controls
-NET "ex_clk_i" LOC = K12;
-NET "ex_clk_o" LOC = F12;
-NET "INT" LOC = R7;
-
-#P1<External>
-#GND GND GND GND GND GND GND GND GND GND
-#GND E16 E15 F16 F15 G16 H15 H16 J14 GND
-#                |<-----pull-up---->|
+NET "ex_clk_i" LOC = J16;
+#NET "ex_clk_o" LOC = F4;
+#NET "INT" LOC = R7;
 
 # UART
-NET "uartSIN"  LOC = R14;
-NET "uartSOUT" LOC = R12;
+NET "uartSIN"  LOC = K15;
+NET "uartSOUT" LOC = L14;
 NET "uartSOUT" PULLUP;
-NET "uartRESET_N" LOC = R15;
-NET "hubRESET_N" LOC = R16;
 
 # UART debug
-NET "uart_debugSIN" LOC = H11;
-NET "uart_debugSOUT" LOC = G12;
+NET "uart_debugSIN" LOC = F1;
+NET "uart_debugSOUT" LOC = E3;
 NET "uart_debugSOUT" PULLUP;
+#NET "uartRESET_N" LOC = F7;
 
-# aLink
-#
-# FPGA   2-1    | 4-3   6-5   8-7   10-9   FAN
-#--------------------------------------------
-# 11 12 13 14 15|
-# 21 22 23 24 16|
-#    27 26 25 17|
-
-#NET   "RX_P[0]" LOC = N3;
-#NET   "RX_N[0]" LOC = P2;
-#NET   "TX_N[0]" LOC = R1 | SLEW = QUIETIO;
-#NET   "TX_P[0]" LOC = T5 | SLEW = QUIETIO;
-#
-#NET   "RX_P[1]"	LOC = R5;
-#NET   "RX_N[1]"	LOC = P1;
-#NET   "TX_N[1]"	LOC = R2 | SLEW = QUIETIO;
-#NET   "TX_P[1]"	LOC = T4 | SLEW = QUIETIO;
-#
-#NET   "RX_P[2]"	LOC = H3;
-#NET   "RX_N[2]"	LOC = K2;
-#NET   "TX_N[2]"	LOC = H2 | SLEW = QUIETIO;
-#NET   "TX_P[2]"	LOC = H1 | SLEW = QUIETIO;
-#
-#NET   "RX_P[3]"	LOC = F2;
-#NET   "RX_N[3]"	LOC = G1;
-#NET   "TX_N[3]"	LOC = L3 | SLEW = QUIETIO;
-#NET   "TX_P[3]"	LOC = M2 | SLEW = QUIETIO;
-#
-#NET   "RX_P[4]"	LOC = E2;
-#NET   "RX_N[4]"	LOC = E1;
-#NET   "TX_N[4]"	LOC = C2 | SLEW = QUIETIO;
-#NET   "TX_P[4]"	LOC = D1 | SLEW = QUIETIO;
-#
-#NET   "RX_P[5]"	LOC = B2;
-#NET   "RX_N[5]"	LOC = C1;
-#NET   "TX_N[5]"	LOC = E3 | SLEW = QUIETIO;
-#NET   "TX_P[5]"	LOC = F1 | SLEW = QUIETIO;
-#
-#NET   "RX_P[6]"	LOC = N4;
-#NET   "RX_N[6]"	LOC = M1;
-#NET   "TX_N[6]"	LOC = A2 | SLEW = QUIETIO;
-#NET   "TX_P[6]"	LOC = B1 | SLEW = QUIETIO;
-#
-#NET   "RX_P[7]"	LOC = A4;
-#NET   "RX_N[7]"	LOC = A3;
-#NET   "TX_N[7]"	LOC = P4 | SLEW = QUIETIO;
-#NET   "TX_P[7]"	LOC = N1 | SLEW = QUIETIO;
-#
-#NET   "RX_P[8]"	LOC = J4;
-#NET   "RX_N[8]"	LOC = K1;
-#NET   "TX_N[8]"	LOC = H4 | SLEW = QUIETIO;
-#NET   "TX_P[8]"	LOC = J1 | SLEW = QUIETIO;
-#
-#NET   "RX_P[9]"	LOC = F4;
-#NET   "RX_N[9]"	LOC = G3;
-#NET   "TX_N[9]"	LOC = M4 | SLEW = QUIETIO;
-#NET   "TX_P[9]"	LOC = L1 | SLEW = QUIETIO;
-
-NET   "SFT_SHCP" LOC = K16;
-NET   "SFT_DS" LOC = M15;
-NET   "SFT_STCP" LOC = K15;
-NET   "SFT_MR_N" LOC = K14;
-NET   "SFT_OE_N" LOC = L16;
-
-#NET   "FAN_IN0" LOC = A6;
-#NET   "FAN_IN1" LOC = A7;
-
-# LED gpioPIO_BOTH_OUT
-#                      SIN
-#                      |   SOUT
-#                      |   |   GPIO0
-#                      |   |   |
-# B12 A11 B10 A10 B14 B16 C16 D16
-#  |   |   |   |   |
-#  |   |   |   |   NONCE89
-#  |   |   |   NONCE67
-#  |   |   NONCE45
-#  |   NONCE23
-#  NONCE01
+#NET   "SFT_SHCP" LOC = K16;
+#NET   "SFT_DS" LOC = M15;
+#NET   "SFT_STCP" LOC = K15;
+#NET   "SFT_MR_N" LOC = K14;
+#NET   "SFT_OE_N" LOC = L16;
 
 #NET "NONCE_led[0]" LOC = B12 | SLEW = QUIETIO;
 #NET "NONCE_led[1]" LOC = A11 | SLEW = QUIETIO;
@@ -107,57 +27,184 @@ NET   "SFT_OE_N" LOC = L16;
 #NET "NONCE_led[4]" LOC = B14 | SLEW = QUIETIO;
 
 #NET "uartSIN_led" LOC = B16 | SLEW = QUIETIO;
-NET "uartSOUT_led" LOC = C6 | SLEW = QUIETIO;
+#NET "uartSOUT_led" LOC = C6 | SLEW = QUIETIO;
 
-NET "gpioPIO_OUT[0]" LOC = D16 | SLEW = QUIETIO;
+#NET "gpioPIO_OUT[0]" LOC = D16 | SLEW = QUIETIO;
 
 #GPIO read ID
-NET "gpioPIO_IN[0]" LOC = A14 | SLEW = QUIETIO;
-NET "gpioPIO_IN[1]" LOC = C9 | SLEW = QUIETIO;
+#NET "gpioPIO_IN[0]" LOC = A14 | SLEW = QUIETIO;
+#NET "gpioPIO_IN[1]" LOC = C9 | SLEW = QUIETIO;
 #GPIO read Power good
-NET "gpioPIO_IN[2]" LOC = J14 | SLEW = QUIETIO;
-NET "gpioPIO_IN[3]" LOC = H16 | SLEW = QUIETIO;
+#NET "gpioPIO_IN[2]" LOC = J14 | SLEW = QUIETIO;
+#NET "gpioPIO_IN[3]" LOC = H16 | SLEW = QUIETIO;
 #NET "gpioPIO_IN[4]" LOC = H15 | SLEW = QUIETIO;
-NET "gpioPIO_IN[5]" LOC = G16 | SLEW = QUIETIO;
+#NET "gpioPIO_IN[5]" LOC = G16 | SLEW = QUIETIO;
 #NET "gpioPIO_IN[6]" LOC = F15 | SLEW = QUIETIO;
 
-#SPI0
-NET "spi0_SCLK_MASTER" LOC = A7;
-NET "spi0_MOSI_MASTER" LOC = C8;
-NET "spi0_MISO_MASTER" LOC = B10;
+#SPI0 OK
+NET "spi0_SCLK_MASTER"    LOC = M2;
+NET "spi0_MOSI_MASTER"    LOC = N3;
+NET "spi0_MISO_MASTER"    LOC = L1;
+NET "spi0_RESET"          LOC = P2;
+NET "spi0_SS_N_MASTER[0]" LOC = R2;
+NET "spi0_SS_N_MASTER[1]" LOC = G3;
+NET "spi0_SS_N_MASTER[2]" LOC = N1;
+NET "spi0_SS_N_MASTER[3]" LOC = L3;
+NET "spi0_SS_N_MASTER[4]" LOC = P1;
+NET "spi0_SS_N_MASTER[5]" LOC = M3;
+NET "spi0_SS_N_MASTER[6]" LOC = R1;
+NET "spi0_SS_N_MASTER[7]" LOC = M1;
 
-NET "spi0_SS_N_MASTER[0]" LOC = C5;
-NET "spi0_SS_N_MASTER[1]" LOC = C10;
-NET "spi0_SS_N_MASTER[2]" LOC = F13;
-NET "spi0_SS_N_MASTER[3]" LOC = E13;
-NET "spi0_SS_N_MASTER[4]" LOC = B16;
-NET "spi0_SS_N_MASTER[5]" LOC = F15;
-NET "spi0_SS_N_MASTER[6]" LOC = A13;
-NET "spi0_SS_N_MASTER[7]" LOC = H15;
+#SPI1 OK
+NET "spi1_SCLK_MASTER"    LOC = K1;
+NET "spi1_MOSI_MASTER"    LOC = J3;
+NET "spi1_MISO_MASTER"    LOC = K2;   
+NET "spi1_RESET"          LOC = J1;  
+NET "spi1_SS_N_MASTER[0]" LOC = E2;
+NET "spi1_SS_N_MASTER[1]" LOC = H2;
+NET "spi1_SS_N_MASTER[2]" LOC = F2;
+NET "spi1_SS_N_MASTER[3]" LOC = G1;
+NET "spi1_SS_N_MASTER[4]" LOC = F3;
+NET "spi1_SS_N_MASTER[5]" LOC = E1;
+NET "spi1_SS_N_MASTER[6]" LOC = H1;
+NET "spi1_SS_N_MASTER[7]" LOC = D1;
 
-#SPI1
-#NET "spi1_SCLK_MASTER" LOC = B12;
-#NET "spi1_MOSI_MASTER" LOC = C11;
-#NET "spi1_MISO_MASTER" LOC = A12;
-#        
-#NET "spi1_SS_N_MASTER[0]" LOC = F16;
-#NET "spi1_SS_N_MASTER[1]" LOC = D14;
-#NET "spi1_SS_N_MASTER[2]" LOC = A6;
-#NET "spi1_SS_N_MASTER[3]" LOC = A9;
-#NET "spi1_SS_N_MASTER[4]" LOC = A5;
-#NET "spi1_SS_N_MASTER[5]" LOC = A8;
-#NET "spi1_SS_N_MASTER[6]" LOC = D5;
-#NET "spi1_SS_N_MASTER[7]" LOC = C7;
+#SPI2 OK
+NET "spi2_SCLK_MASTER"    LOC = T6;
+NET "spi2_MOSI_MASTER"    LOC = T5;
+NET "spi2_MISO_MASTER"    LOC = T4;   
+NET "spi2_RESET"          LOC = M4;  
+NET "spi2_SS_N_MASTER[0]" LOC = M5;
+NET "spi2_SS_N_MASTER[1]" LOC = H5;
+NET "spi2_SS_N_MASTER[2]" LOC = M7;
+NET "spi2_SS_N_MASTER[3]" LOC = K6;
+NET "spi2_SS_N_MASTER[4]" LOC = M6;
+NET "spi2_SS_N_MASTER[5]" LOC = K5;
+NET "spi2_SS_N_MASTER[6]" LOC = N5;
+NET "spi2_SS_N_MASTER[7]" LOC = L10;
 
 
-NET "TWI_SCL" LOC = D3;
-NET "TWI_SDA" LOC = E4;
+#SPI3 OK
+NET "spi3_SCLK_MASTER"    LOC = C3;
+NET "spi3_MOSI_MASTER"    LOC = D3;
+NET "spi3_MISO_MASTER"    LOC = C1; 
+NET "spi3_RESET"          LOC = C2;
+NET "spi3_SS_N_MASTER[0]" LOC = C8;
+NET "spi3_SS_N_MASTER[1]" LOC = B2;
+NET "spi3_SS_N_MASTER[2]" LOC = A3;
+NET "spi3_SS_N_MASTER[3]" LOC = B3;
+NET "spi3_SS_N_MASTER[4]" LOC = A2;
+NET "spi3_SS_N_MASTER[5]" LOC = E4;
+NET "spi3_SS_N_MASTER[6]" LOC = B1;
+NET "spi3_SS_N_MASTER[7]" LOC = A4;
+
+#SPI4 OK
+NET "spi4_SCLK_MASTER"    LOC = T7;
+NET "spi4_MOSI_MASTER"    LOC = L7;
+NET "spi4_MISO_MASTER"    LOC = R7; 
+NET "spi4_RESET"          LOC = P8;    
+NET "spi4_SS_N_MASTER[0]" LOC = T9;
+NET "spi4_SS_N_MASTER[1]" LOC = P5;
+NET "spi4_SS_N_MASTER[2]" LOC = M9;
+NET "spi4_SS_N_MASTER[3]" LOC = P4;
+NET "spi4_SS_N_MASTER[4]" LOC = T8;
+NET "spi4_SS_N_MASTER[5]" LOC = P6;
+NET "spi4_SS_N_MASTER[6]" LOC = R9;
+NET "spi4_SS_N_MASTER[7]" LOC = P7;
+
+
+##SPI5
+NET "spi5_SCLK_MASTER"    LOC = A6;
+NET "spi5_MOSI_MASTER"    LOC = B5;
+NET "spi5_MISO_MASTER"    LOC = D8;    
+NET "spi5_RESET"          LOC = A5;
+NET "spi5_SS_N_MASTER[0]" LOC = A10; #right
+NET "spi5_SS_N_MASTER[1]" LOC = B6;  #right
+NET "spi5_SS_N_MASTER[2]" LOC = A8;  #right
+NET "spi5_SS_N_MASTER[3]" LOC = E7;  #right
+NET "spi5_SS_N_MASTER[4]" LOC = B8;  #right
+NET "spi5_SS_N_MASTER[5]" LOC = A9;  #right
+NET "spi5_SS_N_MASTER[6]" LOC = A7;  #right
+NET "spi5_SS_N_MASTER[7]" LOC = E10; #right
+
+#SPI6
+NET "spi6_SCLK_MASTER"    LOC = M12;
+NET "spi6_MOSI_MASTER"    LOC = M11;
+NET "spi6_MISO_MASTER"    LOC = P9;  
+NET "spi6_RESET"          LOC = T13;   
+NET "spi6_SS_N_MASTER[0]" LOC = R14; #right
+NET "spi6_SS_N_MASTER[1]" LOC = L8;  #right
+NET "spi6_SS_N_MASTER[2]" LOC = N6;  #right
+NET "spi6_SS_N_MASTER[3]" LOC = N9;  #right
+NET "spi6_SS_N_MASTER[4]" LOC = T14; #right
+NET "spi6_SS_N_MASTER[5]" LOC = M10; #right
+NET "spi6_SS_N_MASTER[6]" LOC = T15; #right
+NET "spi6_SS_N_MASTER[7]" LOC = T12; #right
+
+#SPI7 OK
+NET "spi7_SCLK_MASTER"    LOC = D11;
+NET "spi7_MOSI_MASTER"    LOC = C10;
+NET "spi7_MISO_MASTER"    LOC = C11;     
+NET "spi7_RESET"          LOC = C13;
+NET "spi7_SS_N_MASTER[0]" LOC = A14;
+NET "spi7_SS_N_MASTER[1]" LOC = D12;
+NET "spi7_SS_N_MASTER[2]" LOC = A13;
+NET "spi7_SS_N_MASTER[3]" LOC = A11;
+NET "spi7_SS_N_MASTER[4]" LOC = A12;
+NET "spi7_SS_N_MASTER[5]" LOC = B12;
+NET "spi7_SS_N_MASTER[6]" LOC = E11;
+NET "spi7_SS_N_MASTER[7]" LOC = F15;
+
+#SPI8 OK
+NET "spi8_SCLK_MASTER"    LOC = M16;
+NET "spi8_MOSI_MASTER"    LOC = R16;
+NET "spi8_MISO_MASTER"    LOC = J13;   
+NET "spi8_RESET"          LOC = L16;  
+NET "spi8_SS_N_MASTER[0]" LOC = M13;
+NET "spi8_SS_N_MASTER[1]" LOC = R15;
+NET "spi8_SS_N_MASTER[2]" LOC = M15;
+NET "spi8_SS_N_MASTER[3]" LOC = N14;
+NET "spi8_SS_N_MASTER[4]" LOC = J12;
+NET "spi8_SS_N_MASTER[5]" LOC = P16;
+NET "spi8_SS_N_MASTER[6]" LOC = M14;
+NET "spi8_SS_N_MASTER[7]" LOC = N16;
+
+#SPI9
+NET "spi9_SCLK_MASTER"    LOC = H14;
+NET "spi9_MOSI_MASTER"    LOC = G14;
+NET "spi9_MISO_MASTER"    LOC = F14;  
+NET "spi9_RESET"          LOC = G16;   
+NET "spi9_SS_N_MASTER[0]" LOC = E16;
+NET "spi9_SS_N_MASTER[1]" LOC = H16;
+NET "spi9_SS_N_MASTER[2]" LOC = D16;
+NET "spi9_SS_N_MASTER[3]" LOC = J14;
+NET "spi9_SS_N_MASTER[4]" LOC = K14;
+NET "spi9_SS_N_MASTER[5]" LOC = K16;
+NET "spi9_SS_N_MASTER[6]" LOC = H15;
+NET "spi9_SS_N_MASTER[7]" LOC = E15;
+
+NET "TWI_SCL" LOC = C6;
+NET "TWI_SDA" LOC = C5;
 
 # SPI Flash: W25Q80BV
-NET "POWER_ON" LOC = T3 | SLEW = QUIETIO;
-#NET "PWM" LOC = A5 | SLEW = QUIETIO;
+#NET "POWER_ON" LOC = T3 | SLEW = QUIETIO;
+NET "PWM0" LOC = D6; #D6 FPGA OUTPUT
+NET "FAN_IN0" LOC = E6;#C7 #FPGA INPUT
+
+NET "PWM1" LOC = D5; # D5 FPGA OUTPUT
+NET "FAN_IN1" LOC = C7;#E6 FPGA INPUT
 
 NET "*" IOSTANDARD = LVCMOS33;
+
+#LED
+NET "LED[0]" LOC = F4; 
+NET "LED[1]" LOC = F5;
+NET "LED[2]" LOC = F6;
+NET "LED[3]" LOC = F7;
+NET "LED[4]" LOC = B15;
+NET "LED[5]" LOC = B16;
+NET "LED[6]" LOC = C15;
+NET "LED[7]" LOC = C16;
 
 NET "ex_clk_i" TNM_NET = "ex_clk_i";
 TIMESPEC TS_clk = PERIOD "ex_clk_i" 40 ns HIGH 50 %;

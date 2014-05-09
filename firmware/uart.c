@@ -30,7 +30,7 @@ static void uart_write32(unsigned int data)
 	unsigned char * p = (unsigned char *)&data;
 	for(i=0;i<4;i++){
 		
-		uart1_write(p[i]);
+		uart_write(p[i]);
 	}
 }
 
@@ -63,7 +63,7 @@ char uart_read(void)
 	char c;
 	while (rx_consume == rx_produce);
 	c = rx_buf[rx_consume];
-	rx_consume = (rx_consume + 1) & UART_RINGBUFFER_MASK_RX;
+	rx_consume = (rx_consume + 1) & UART_RINGBUFFER_MASK_RX;	
 	return c;
 }
 
@@ -133,7 +133,7 @@ void uart_nwrite(const char *s, unsigned int l)
 
 
 #ifdef DEBUG
-#define UART1_RINGBUFFER_SIZE_RX 16
+#define UART1_RINGBUFFER_SIZE_RX 512
 #define UART1_RINGBUFFER_MASK_RX (UART1_RINGBUFFER_SIZE_RX-1)
 
 //UART1 rx buffer is limited up to 16 bytes, DO NOT send data more than that at one time.
