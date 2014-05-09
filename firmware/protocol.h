@@ -46,4 +46,12 @@
 #define HRTO_P_ACKDETECT  55
 #define HRTO_P_TEST_RET   56
 
+#define HRTO_P_ITP_TASK 80
+#define HRTO_P_ITP_RESULT 81
+#define HRTO_P_ITP_SYNC 82
+#define HRTO_P_ITP_ENTER 83
+#define HRTO_P_ITP_EXIT 84
+
+
+
 #endif	/* _PROTOCOL_H_ */

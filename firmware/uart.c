@@ -30,7 +30,7 @@ static void uart_write32(unsigned int data)
 	unsigned char * p = (unsigned char *)&data;
 	for(i=0;i<4;i++){
 		
-		uart1_write(p[i]);
+		uart_write(p[i]);
 	}
 }
 
