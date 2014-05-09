@@ -61,6 +61,8 @@ static struct be200_result be200_result_buff[BE200_RET_RINGBUFFER_SIZE_RX];
 static volatile unsigned int be200_ret_produce = 0;
 static volatile unsigned int be200_ret_consume = 0;
 
+static uint8_t itp_data[48];
+static uint8_t itp_result[80];	
 static void freq_write(uint8_t idx, uint8_t multi) {
 	be200_set_pll(idx, multi);
 	delay_us(500);
@@ -161,7 +163,13 @@ static int decode_pkg(uint8_t *p)
 	unsigned int expected_crc;
 	unsigned int actual_crc;
 	int idx, cnt, i;
+	uint8_t chip_idx;
+	uint8_t pkg_idx;
 	uint32_t tmp;
+	uint8_t ready;
+	uint8_t nonce_mask;
+	uint32_t actual_nonce,expected_nonce;
+	int32_t diff_nonce;
 	struct mm_work *mw;
 	
 	int mm_write_idx = (g_cur_mm_idx + 1) % MM_BUF_NUM;  // ring buf index
@@ -170,10 +178,8 @@ static int decode_pkg(uint8_t *p)
 	uint8_t *data = p + 5;
 	idx = p[3];
 	cnt = p[4];
-
 	expected_crc = (p[HRTO_P_COUNT - 1] & 0xff) |
 		((p[HRTO_P_COUNT - 2] & 0xff) << 8);
-
 	actual_crc = crc16(data, HRTO_P_DATA_LEN);
 	if(expected_crc != actual_crc) {
 		debug32("PKG: CRC failed (W %08x, R %08x)\n",
@@ -257,6 +263,76 @@ static int decode_pkg(uint8_t *p)
 		memcpy(mw->target, data, HRTO_P_DATA_LEN);
 		break;
 	case HRTO_P_TEST:
+		break;
+	case HRTO_P_ITP_TASK:
+		debug32("HROT_P_ITP_TASK\n");
+		pkg_idx = idx;
+		//chip_idx = data[0];
+		if(pkg_idx == 1){
+			memcpy(itp_data,data+1,24);
+			break;
+		}
+		if(pkg_idx == 2){
+			memcpy(itp_data+24,data+1,24);
+			/*uint8_t i;
+			for(i=0;i<48;i++){
+				debug32("%02x ",itp_data[i]);
+			}
+			debug32("\n");*/
+			for (i = 0; i < 80; i++) {
+				//be200_reset(i);
+				freq_write(i, (BE200_DEFAULT_FREQ/10) - 1);  // (X + 1) / 2
+			}
+			delay(10);
+			for(chip_idx = 0;chip_idx < 80;chip_idx++){
+				be200_cmd_rd(chip_idx, BE200_REG_CLEAR);  // clear nonce_mask register
+				be200_input_task(chip_idx,itp_data);
+				be200_start(chip_idx);
+			}
+			break;
+		}
+		break;
+	case HRTO_P_ITP_RESULT:
+		debug32("HROT_P_ITP_RESULT\n");
+		memcpy((uint8_t *)&expected_nonce,itp_data+44,4);
+		for(chip_idx = 0;chip_idx < 80;chip_idx++){
+			ready = be200_get_done(chip_idx, &nonce_mask);
+			debug32("chip%02d ready=%d ",chip_idx,ready);
+			if (ready == 0){
+				itp_result[chip_idx] = 'N';
+				debug32("result=%c\n",itp_result[chip_idx]);
+				continue;
+			}
+		
+			be200_get_result(chip_idx, nonce_mask, &actual_nonce);
+			be200_cmd_rd(chip_idx, BE200_REG_CLEAR);  // clear nonce_mask register
+			
+			
+			//debug32("%d\n",actual_nonce==expected_nonce);
+			diff_nonce = (int32_t)actual_nonce - (int32_t)expected_nonce;
+			if(diff_nonce >= -4 || diff_nonce <= 4)
+				itp_result[chip_idx] = 'R';
+			else
+				itp_result[chip_idx] = 'E';
+			debug32("result=%c\n",itp_result[chip_idx]);
+			debug32("a_nonce:%08x e_nonce:%08x\n",actual_nonce,expected_nonce);
+			actual_nonce = 0;
+		}
+		for(chip_idx = 0;chip_idx < 80;chip_idx++){
+			uart_write(itp_result[chip_idx]);
+		}
+		break;
+	case HRTO_P_ITP_SYNC:
+		debug32("HRTO_P_ITP_SYNC\n");
+		uart_puts("HRTO");
+		break;
+	case HRTO_P_ITP_ENTER:
+		debug32("HRTO_P_ITP_ENTER\n");
+		adjust_fan(1000);
+		break;
+	case HRTO_P_ITP_EXIT:
+		debug32("HRTO_P_ITP_EXIT\n");
+		adjust_fan(200);
 		break;
 	default:
 		break;
@@ -418,7 +494,7 @@ int main(int argv,char * * argc)
 	uint16_t tmp = 0;
 	
 	wdg_init(1);
-	wdg_feed_sec(10);
+	wdg_feed_sec(60);
 	
 	irq_setmask(0);
 	irq_enable(1);
@@ -435,14 +511,14 @@ int main(int argv,char * * argc)
 	g_working = 1;
 	
 	while (1) {
-		wdg_feed_sec(10);
+		wdg_feed_sec(60);
 		
 		get_pkg();
 
 		if (!timer_read(1)) {
 			tmp = read_temp();
 			timer_set(1,5);
-			debug32("Temperature:%d\n",tmp);
+			//debug32("Temperature:%d\n",tmp);
 		}
 		if (tmp >= g_temp_high) {
 			g_working = 0;
@@ -466,7 +542,6 @@ int main(int argv,char * * argc)
 		if (unlikely(!g_new_stratum)) {
 			continue;
 		}
-		
 		for (idx = 0; idx < CHIP_NUMBER; idx++) {
 			if (!be200_is_idle(idx)) {
 				continue;
@@ -487,14 +562,14 @@ int main(int argv,char * * argc)
 	return 0;
 }
 
-int main3(int argv,char * * argc)
+int main1(int argv,char * * argc)
 {
 	uint8_t c;
 	//uint16_t t;
 	
-	wdg_init(1);
-	wdg_feed_sec(10);
-	//wdg_feed(0x1fffff00);
+	//wdg_init(1);
+	//wdg_feed_sec(10);
+	
 	debug32("Init.\n");
 	
 	irq_setmask(0);
@@ -505,7 +580,8 @@ int main3(int argv,char * * argc)
 
 	
 	while(1){
-		c = uart1_read();
+		//wdg_feed_sec(10);
+		c = uart_read();
 		//t = read_temp();
 		uart1_writeb(c);
 		//wdg_feed((CPU_FREQUENCY/1000)*200);
