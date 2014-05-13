@@ -51,6 +51,9 @@
 #define HRTO_P_ITP_SYNC 82
 #define HRTO_P_ITP_ENTER 83
 #define HRTO_P_ITP_EXIT 84
+#define HRTO_P_ITP_SINGLE_TASK 85
+#define HRTO_P_ITP_SINGLE_RESULT 86
+
 
 
 
