@@ -310,7 +310,7 @@ static int decode_pkg(uint8_t *p)
 			
 			//debug32("%d\n",actual_nonce==expected_nonce);
 			diff_nonce = (int32_t)actual_nonce - (int32_t)expected_nonce;
-			if(diff_nonce >= -4 || diff_nonce <= 4)
+			if(diff_nonce >= -4 && diff_nonce <= 4)
 				itp_result[chip_idx] = 'R';
 			else
 				itp_result[chip_idx] = 'E';
@@ -319,6 +319,64 @@ static int decode_pkg(uint8_t *p)
 			actual_nonce = 0;
 		}
 		for(chip_idx = 0;chip_idx < 80;chip_idx++){
+			uart_write(itp_result[chip_idx]);
+		}
+		break;
+	case HRTO_P_ITP_SINGLE_TASK:
+		debug32("HROT_P_ITP_SINGLE_TASK\n");
+		pkg_idx = idx;
+		//chip_idx = data[0];
+		if(pkg_idx == 1){
+			memcpy(itp_data,data+1,24);
+			break;
+		}
+		if(pkg_idx == 2){
+			memcpy(itp_data+24,data+1,24);
+			/*uint8_t i;
+			for(i=0;i<48;i++){
+				debug32("%02x ",itp_data[i]);
+			}
+			debug32("\n");*/
+			for (i = 0; i < 16; i++) {
+				//be200_reset(i);
+				freq_write(i, (BE200_DEFAULT_FREQ/10) - 1);  // (X + 1) / 2
+			}
+			delay(10);
+			for(chip_idx = 0;chip_idx < 16;chip_idx++){
+				be200_cmd_rd(chip_idx, BE200_REG_CLEAR);  // clear nonce_mask register
+				be200_input_task(chip_idx,itp_data);
+				be200_start(chip_idx);
+			}
+			break;
+		}
+		break;
+	case HRTO_P_ITP_SINGLE_RESULT:
+		debug32("HROT_P_ITP_SINGLE_RESULT\n");
+		memcpy((uint8_t *)&expected_nonce,itp_data+44,4);
+		for(chip_idx = 0;chip_idx < 16;chip_idx++){
+			ready = be200_get_done(chip_idx, &nonce_mask);
+			debug32("chip%02d ready=%d ",chip_idx,ready);
+			if (ready == 0){
+				itp_result[chip_idx] = 'N';
+				debug32("result=%c\n",itp_result[chip_idx]);
+				continue;
+			}
+		
+			be200_get_result(chip_idx, nonce_mask, &actual_nonce);
+			be200_cmd_rd(chip_idx, BE200_REG_CLEAR);  // clear nonce_mask register
+			
+			
+			//debug32("%d\n",actual_nonce==expected_nonce);
+			diff_nonce = (int32_t)actual_nonce - (int32_t)expected_nonce;
+			if(diff_nonce >= -4 && diff_nonce <= 4)
+				itp_result[chip_idx] = 'R';
+			else
+				itp_result[chip_idx] = 'E';
+			debug32("result=%c\n",itp_result[chip_idx]);
+			debug32("a_nonce:%08x e_nonce:%08x\n",actual_nonce,expected_nonce);
+			actual_nonce = 0;
+		}
+		for(chip_idx = 0;chip_idx < 16;chip_idx++){
 			uart_write(itp_result[chip_idx]);
 		}
 		break;
