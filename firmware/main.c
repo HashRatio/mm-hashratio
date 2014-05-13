@@ -575,8 +575,11 @@ int main(int argv,char * * argc)
 
 		if (!timer_read(1)) {
 			tmp = read_temp();
+			if(tmp == 0xff){
+				tmp = g_temp_normal;
+			}
 			timer_set(1,5);
-			//debug32("Temperature:%d\n",tmp);
+			debug32("Temperature:%d\n",tmp);
 		}
 		if (tmp >= g_temp_high) {
 			g_working = 0;
