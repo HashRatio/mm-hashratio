@@ -10,6 +10,7 @@
 #include "io.h"
 #include "timer.h"
 #include "intr.h"
+#include "utils.h"
 
 static struct lm32_timer *tim = (struct lm32_timer *)TIMER_BASE;
 
@@ -92,10 +93,22 @@ void led(uint8_t value)
 	writel(value, &tim->gpio);
 }
 
-/*void led_on(uint8_t mask)
+void led_on(uint8_t mask)
 {
-	led(tim->gpio|mask,&tim->gpio);
-}*/
+	writel(tim->gpio|mask,&tim->gpio);
+}
+
+void led_off(uint8_t mask)
+{
+	writel(tim->gpio&(~mask),&tim->gpio);
+}
+
+void led_blink(uint8_t mask,uint32_t interval)
+{
+	writel(tim->gpio^mask,&tim->gpio);
+	delay(interval);
+	writel(tim->gpio^mask,&tim->gpio);
+}
 
 int read_power_good()
 {
