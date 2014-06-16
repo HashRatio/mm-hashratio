@@ -110,6 +110,13 @@ void led_blink(uint8_t mask,uint32_t interval)
 	writel(tim->gpio^mask,&tim->gpio);
 }
 
+void chip_hard_reset(uint32_t interval)
+{
+	writel(tim->gpio|0x00000100,&tim->gpio);
+	delay(interval);
+	writel(tim->gpio&0xFFFFFEFF,&tim->gpio);
+}
+
 int read_power_good()
 {
 	return (readl(&tim->gpio) >> 6) & 0x1f;

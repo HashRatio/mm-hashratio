@@ -1073,7 +1073,7 @@ assign spi0_SPI_DAT_I = SHAREDBUS_DAT_I[31:0];
 wire [3:0] spi0_SPI_SEL_I;
 assign spi0_SPI_SEL_I = SHAREDBUS_SEL_I;
 assign spi0_SPI_en = (SHAREDBUS_ADR_I[31:8] == 24'b100000000000000000000000);//Device address 0x80000000
-assign spi0_RESET = WATCH_DOG;
+assign spi0_RESET = gpioGPIO_OUT_w[8];
 spi
 #(
 .MASTER(1),
@@ -1111,7 +1111,7 @@ assign spi1_SPI_DAT_I = SHAREDBUS_DAT_I[31:0];
 wire [3:0] spi1_SPI_SEL_I;
 assign spi1_SPI_SEL_I = SHAREDBUS_SEL_I;
 assign spi1_SPI_en = (SHAREDBUS_ADR_I[31:8] == 24'b100000000000000000000111);//Device address 0x80000700
-assign spi1_RESET = WATCH_DOG;
+assign spi1_RESET = gpioGPIO_OUT_w[8];
 spi
 #(
 .MASTER(1),
@@ -1149,7 +1149,7 @@ assign spi2_SPI_DAT_I = SHAREDBUS_DAT_I[31:0];
 wire [3:0] spi2_SPI_SEL_I;
 assign spi2_SPI_SEL_I = SHAREDBUS_SEL_I;
 assign spi2_SPI_en = (SHAREDBUS_ADR_I[31:8] == 24'b100000000000000000001000);//Device address 0x80000800
-assign spi2_RESET = WATCH_DOG;
+assign spi2_RESET = gpioGPIO_OUT_w[8];
 spi
 #(
 .MASTER(1),
@@ -1187,7 +1187,7 @@ assign spi3_SPI_DAT_I = SHAREDBUS_DAT_I[31:0];
 wire [3:0] spi3_SPI_SEL_I;
 assign spi3_SPI_SEL_I = SHAREDBUS_SEL_I;
 assign spi3_SPI_en = (SHAREDBUS_ADR_I[31:8] == 24'b100000000000000000001001);//Device address 0x80000900
-assign spi3_RESET = WATCH_DOG;
+assign spi3_RESET = gpioGPIO_OUT_w[8];
 spi
 #(
 .MASTER(1),
@@ -1225,7 +1225,7 @@ assign spi4_SPI_DAT_I = SHAREDBUS_DAT_I[31:0];
 wire [3:0] spi4_SPI_SEL_I;
 assign spi4_SPI_SEL_I = SHAREDBUS_SEL_I;
 assign spi4_SPI_en = (SHAREDBUS_ADR_I[31:8] == 24'b100000000000000000001010);//Device address 0x80000A00
-assign spi4_RESET = WATCH_DOG;
+assign spi4_RESET = gpioGPIO_OUT_w[8];
 spi
 #(
 .MASTER(1),
@@ -1263,7 +1263,7 @@ assign spi5_SPI_DAT_I = SHAREDBUS_DAT_I[31:0];
 wire [3:0] spi5_SPI_SEL_I;
 assign spi5_SPI_SEL_I = SHAREDBUS_SEL_I;
 assign spi5_SPI_en = (SHAREDBUS_ADR_I[31:8] == 24'b100000000000000000001011);//Device address 0x80000B00
-assign spi5_RESET = WATCH_DOG;
+assign spi5_RESET = gpioGPIO_OUT_w[8];
 spi
 #(
 .MASTER(1),
@@ -1301,7 +1301,7 @@ assign spi6_SPI_DAT_I = SHAREDBUS_DAT_I[31:0];
 wire [3:0] spi6_SPI_SEL_I;
 assign spi6_SPI_SEL_I = SHAREDBUS_SEL_I;
 assign spi6_SPI_en = (SHAREDBUS_ADR_I[31:8] == 24'b100000000000000000001100);//Device address 0x80000C00
-assign spi6_RESET = WATCH_DOG;
+assign spi6_RESET = gpioGPIO_OUT_w[8];
 spi
 #(
 .MASTER(1),
@@ -1339,7 +1339,7 @@ assign spi7_SPI_DAT_I = SHAREDBUS_DAT_I[31:0];
 wire [3:0] spi7_SPI_SEL_I;
 assign spi7_SPI_SEL_I = SHAREDBUS_SEL_I;
 assign spi7_SPI_en = (SHAREDBUS_ADR_I[31:8] == 24'b100000000000000000001101);//Device address 0x80000D00
-assign spi7_RESET = WATCH_DOG;
+assign spi7_RESET = gpioGPIO_OUT_w[8];
 spi
 #(
 .MASTER(1),
@@ -1377,7 +1377,7 @@ assign spi8_SPI_DAT_I = SHAREDBUS_DAT_I[31:0];
 wire [3:0] spi8_SPI_SEL_I;
 assign spi8_SPI_SEL_I = SHAREDBUS_SEL_I;
 assign spi8_SPI_en = (SHAREDBUS_ADR_I[31:8] == 24'b100000000000000000001110);//Device address 0x80000E00
-assign spi8_RESET = WATCH_DOG;
+assign spi8_RESET = gpioGPIO_OUT_w[8];
 spi
 #(
 .MASTER(1),
@@ -1415,7 +1415,7 @@ assign spi9_SPI_DAT_I = SHAREDBUS_DAT_I[31:0];
 wire [3:0] spi9_SPI_SEL_I;
 assign spi9_SPI_SEL_I = SHAREDBUS_SEL_I;
 assign spi9_SPI_en = (SHAREDBUS_ADR_I[31:8] == 24'b100000000000000000001111);//Device address 0x80000F00
-assign spi9_RESET = WATCH_DOG;
+assign spi9_RESET = gpioGPIO_OUT_w[8];
 spi
 #(
 .MASTER(1),

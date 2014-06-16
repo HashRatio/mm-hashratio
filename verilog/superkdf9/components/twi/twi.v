@@ -334,7 +334,7 @@ assign TWI_DAT_O = i2cr_rd_en_r ? {24'b0,reg_i2cr}     :
 		   {24'b0,reg_i2rd} ;
 
 twi_core twi_core (
-/*input       */ .clk          (CLK_I                ) ,
+/*input       */ .clk          (CLK_I   ) ,
 /*input       */ .rst          (RST_I                ) ,
 /*input       */ .wr           (i2cr_wr_en|i2wd_wr_en) , //we
 /*input  [7:0]*/ .data_in      (TWI_DAT_I[7:0]       ) ,//dat1
@@ -345,5 +345,6 @@ twi_core twi_core (
 /*input       */ .twi_sda_i    (TWI_SDA_I            ) ,
 /*output      */ .twi_sda_oen  (TWI_SDA_OEN          )
 );
+
 
 endmodule

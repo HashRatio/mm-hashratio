@@ -13,15 +13,15 @@ input  twi_sda_i    ,
 output twi_sda_oen
 );
 
-parameter TWI_F     = 3 ;
+parameter TWI_F     = 1 ;
 
-parameter START_SDA = 600/TWI_F+1 ;
-parameter SDA_SET   = 700/TWI_F+1 ;
-parameter SDA_WAIT  = 600/TWI_F+1 ;
+parameter START_SDA = 1200/TWI_F+1 ;
+parameter SDA_SET   = 1400/TWI_F+1 ;
+parameter SDA_WAIT  = 1200/TWI_F+1 ;
 
 parameter START_SCL = START_SDA+100/TWI_F+1 ;
 parameter TWI_DONE  = START_SCL+1300/TWI_F+1 ;
-parameter STOP_SCL  = 100/TWI_F+1 ;
+parameter STOP_SCL  = 50/TWI_F+1 ;
 
 reg [7:0] rd_buf ;
 reg [11:0] cnt ;

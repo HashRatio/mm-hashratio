@@ -47,8 +47,8 @@ static int g_temp_normal = 50;
 static int g_working = 0;
 static struct mm_work g_mm_works[MM_BUF_NUM];
 
-//static int reset_flag;
-static int rf_arr[CHIP_NUMBER];
+static int reset_flag;
+//static int rf_arr[CHIP_NUMBER];
 static uint32_t g_nonce2_offset = 0;
 static uint32_t g_nonce2_range  = 0xffffffff;
 
@@ -65,6 +65,7 @@ static volatile unsigned int be200_ret_consume = 0;
 
 static uint8_t itp_data[48];
 static uint8_t itp_result[80];	
+void set_all_chips_idle();
 static void freq_write(uint8_t idx, uint8_t multi) {
 	be200_set_pll(idx, multi);
 	delay_us(500);
@@ -465,26 +466,17 @@ uint32_t be200_read_result()
 					g_local_work, data->idx, data->mm_idx,
 					data->nonce2, data->nonce, g_total_nonce);
 			led_blink(0x02,20);
-			rf_arr[i] = 0;
 		}
 		else if (unlikely(!found) /* NONCE_HW */) {
 			g_hw_work++;
-			debug32("========= invalid nonce ========= %02d %02d\n",idx,rf_arr[idx]);
+			debug32("========= invalid nonce =========\n");
 			led_blink(0x08,20);
-			rf_arr[idx] ++;
-			if(rf_arr[idx] > 20){
-				debug32("reset chip %02d\n",idx);
-				be200_reset(idx);
-				delay_us(100);
-				freq_write(idx, (BE200_DEFAULT_FREQ/10) - 1);
-				be200_cmd_rd(idx, BE200_REG_CLEAR);
-				rf_arr[idx] = 0;
+			reset_flag ++;
+			if(reset_flag == 10){
+				chip_hard_reset(100);	
+				set_all_chips_idle();
+				reset_flag = 0;
 			}
-			/*reset_flag ++;
-			if(reset_flag == 100){
-				wdg_feed_sec(4);
-				delay(6000);
-			}*/
 		}
 	} /* /for */
 	
@@ -558,10 +550,7 @@ void set_default_freq() {
 void set_all_chips_idle() {
 	int i;
 	for (i = 0; i < HRTO_DEFAULT_MINERS; i++) {
-		//be200_reset(i);
-		//be200_cmd_rd(i, BE200_REG_CLEAR);
 		freq_write(i, (BE200_DEFAULT_FREQ/10) - 1);  // (X + 1) / 2
-		//be200_cmd_rd(i, BE200_REG_CLEAR);
 	}
 	delay(10);
 }
@@ -593,8 +582,9 @@ int main(int argv,char * * argc)
 		delay(500);		
 	}
 	led_on(0xAA);
-
+	
 	adjust_fan(200); /* ~= 20% */
+	chip_hard_reset(100);
 	set_all_chips_idle();
 	timer_set(1,2);
 	g_working = 1;
