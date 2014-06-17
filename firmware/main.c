@@ -261,7 +261,9 @@ static int decode_pkg(uint8_t *p)
 		g_new_stratum = 1;
 		
 		debug32("HRTO_P_SET: idx: %d, cnt: %d\n", idx, cnt);
-		led_blink(0x20,100);		
+		#if ENABLE_LED
+		led_blink(0x20,100);
+		#endif	
 		break;
 	case HRTO_P_TARGET:
 		memcpy(mw->target, data, HRTO_P_DATA_LEN);
@@ -465,14 +467,19 @@ uint32_t be200_read_result()
 					"mm_idx: %02x, nonce2: %08x, nonce: %08x, total:%d\n",
 					g_local_work, data->idx, data->mm_idx,
 					data->nonce2, data->nonce, g_total_nonce);
+			#if ENABLE_LED			
 			led_blink(0x02,20);
+			#endif
 		}
 		else if (unlikely(!found) /* NONCE_HW */) {
 			g_hw_work++;
 			debug32("========= invalid nonce =========\n");
+			#if ENABLE_LED
 			led_blink(0x08,20);
+			#endif
 			reset_flag ++;
-			if(reset_flag == 10){
+			if(reset_flag >= 10){
+				debug32("Reset all chips.\n");
 				chip_hard_reset(100);	
 				set_all_chips_idle();
 				reset_flag = 0;
@@ -573,7 +580,7 @@ int main(int argv,char * * argc)
 	uart1_init();
 
 	debug32("MM-%s\n", MM_VERSION);
-
+	#if ENABLE_LED
 	led_off(0xAA);
 	for(i=0;i<5;i++){
 		led_on(0xFF);
@@ -582,7 +589,8 @@ int main(int argv,char * * argc)
 		delay(500);		
 	}
 	led_on(0xAA);
-	
+	#endif
+
 	adjust_fan(200); /* ~= 20% */
 	chip_hard_reset(100);
 	set_all_chips_idle();
@@ -614,13 +622,14 @@ int main(int argv,char * * argc)
 		} else {
 			g_working = 1;
 		}*/
+		#if ENABLE_LED
 		if(tmp >= g_temp_high)
 			led_on(0x80);
 		else if (tmp < g_temp_high && tmp >= g_temp_normal)
 			led_off(0x80);
 		else
 			led_off(0x80);
-					
+		#endif			
 		
 		if(!timer_read(0) && g_new_stratum){
 			g_new_stratum = 0;
