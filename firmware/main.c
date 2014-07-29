@@ -47,6 +47,8 @@ static int g_temp_normal = 50;
 static int g_working = 0;
 static struct mm_work g_mm_works[MM_BUF_NUM];
 
+static int reset_flag;
+//static int rf_arr[CHIP_NUMBER];
 static uint32_t g_nonce2_offset = 0;
 static uint32_t g_nonce2_range  = 0xffffffff;
 
@@ -63,6 +65,7 @@ static volatile unsigned int be200_ret_consume = 0;
 
 static uint8_t itp_data[48];
 static uint8_t itp_result[80];	
+void set_all_chips_idle();
 static void freq_write(uint8_t idx, uint8_t multi) {
 	be200_set_pll(idx, multi);
 	delay_us(500);
@@ -208,7 +211,7 @@ static int decode_pkg(uint8_t *p)
 			mw->merkle_offset,
 			mw->nmerkles,
 			mw->diff,
-			mw->pool_no);
+			mw->pool_no);		
 		break;
 	case HRTO_P_JOB_ID:
 		memcpy(mw->job_id, data, 4);
@@ -258,6 +261,9 @@ static int decode_pkg(uint8_t *p)
 		g_new_stratum = 1;
 		
 		debug32("HRTO_P_SET: idx: %d, cnt: %d\n", idx, cnt);
+		#if ENABLE_LED
+		led_blink(0x20,100);
+		#endif	
 		break;
 	case HRTO_P_TARGET:
 		memcpy(mw->target, data, HRTO_P_DATA_LEN);
@@ -461,10 +467,23 @@ uint32_t be200_read_result()
 					"mm_idx: %02x, nonce2: %08x, nonce: %08x, total:%d\n",
 					g_local_work, data->idx, data->mm_idx,
 					data->nonce2, data->nonce, g_total_nonce);
+			#if ENABLE_LED			
+			led_blink(0x02,20);
+			#endif
 		}
 		else if (unlikely(!found) /* NONCE_HW */) {
 			g_hw_work++;
 			debug32("========= invalid nonce =========\n");
+			#if ENABLE_LED
+			led_blink(0x08,20);
+			#endif
+			reset_flag ++;
+			if(reset_flag >= 10){
+				debug32("Reset all chips.\n");
+				chip_hard_reset(100);	
+				set_all_chips_idle();
+				reset_flag = 0;
+			}
 		}
 	} /* /for */
 	
@@ -538,7 +557,6 @@ void set_default_freq() {
 void set_all_chips_idle() {
 	int i;
 	for (i = 0; i < HRTO_DEFAULT_MINERS; i++) {
-		be200_reset(i);
 		freq_write(i, (BE200_DEFAULT_FREQ/10) - 1);  // (X + 1) / 2
 	}
 	delay(10);
@@ -550,6 +568,7 @@ int main(int argv,char * * argc)
 	struct work work;
 	uint16_t idx;
 	uint16_t tmp = 0;
+	uint16_t i;
 	
 	wdg_init(1);
 	wdg_feed_sec(60);
@@ -560,10 +579,20 @@ int main(int argv,char * * argc)
 	uart_init();
 	uart1_init();
 
-	led(0xAA);
-	
 	debug32("MM-%s\n", MM_VERSION);
+	#if ENABLE_LED
+	led_off(0xAA);
+	for(i=0;i<5;i++){
+		led_on(0xFF);
+		delay(500);
+		led_off(0xFF);
+		delay(500);		
+	}
+	led_on(0xAA);
+	#endif
+
 	adjust_fan(200); /* ~= 20% */
+	chip_hard_reset(100);
 	set_all_chips_idle();
 	timer_set(1,2);
 	g_working = 1;
@@ -575,13 +604,13 @@ int main(int argv,char * * argc)
 
 		if (!timer_read(1)) {
 			tmp = read_temp();
-			if(tmp == 0xff){
-				tmp = g_temp_normal;
-			}
+			//if(tmp == 0xff){
+			//	tmp = g_temp_normal;
+			//}
 			timer_set(1,5);
 			debug32("Temperature:%d\n",tmp);
 		}
-		if (tmp >= g_temp_high) {
+		/*if (tmp >= g_temp_high) {
 			g_working = 0;
 			g_new_stratum = 0;
 			adjust_fan(1000);
@@ -592,8 +621,16 @@ int main(int argv,char * * argc)
 			}
 		} else {
 			g_working = 1;
-		}
-			
+		}*/
+		#if ENABLE_LED
+		if(tmp >= g_temp_high)
+			led_on(0x80);
+		else if (tmp < g_temp_high && tmp >= g_temp_normal)
+			led_off(0x80);
+		else
+			led_off(0x80);
+		#endif			
+		
 		if(!timer_read(0) && g_new_stratum){
 			g_new_stratum = 0;
 			be200_ret_produce = be200_ret_consume = 0;
@@ -641,10 +678,14 @@ int main1(int argv,char * * argc)
 
 	
 	while(1){
+		c= be200_cmd_ck(0);
+		debug32("0x%02x\n",c);
+		delay(1000);
+
 		//wdg_feed_sec(10);
-		c = uart_read();
+		//c = uart_read();
 		//t = read_temp();
-		uart1_writeb(c);
+		//uart1_writeb(c);
 		//wdg_feed((CPU_FREQUENCY/1000)*200);
 	}
 	return 0;

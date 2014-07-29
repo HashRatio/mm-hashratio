@@ -28,7 +28,7 @@ uint8_t be200_cmd_rd(uint8_t idx,uint8_t reg)
 	write_buffer[2] = 0x00;
 	write_buffer[3] = 0x00;
 	spi_transfer(idx,write_buffer,read_buffer,4);
-    return read_buffer[2];
+    return read_buffer[1];
 }
 
 void be200_cmd_wr(uint8_t idx,uint8_t reg, uint8_t value)
@@ -54,30 +54,46 @@ void be200_reset(uint8_t idx)
 
 uint8_t be200_is_idle(uint8_t idx)
 {
+	//uint8_t r;
+	//r = be200_cmd_ck(idx);
+	//debug32("idle:0x%02x\n",r);
 	return be200_cmd_ck(idx) & BE200_STAT_W_ALLOW;
+	//return be200_cmd_ck(idx) & BE200_STAT_W_ALLOW;
 }
 
 uint8_t be200_input_task(uint8_t idx,const uint8_t * task)
 {
 	uint8_t i,c;
+	//debug32("be200_input_task\n");
 	for (i = 0; i < 44; i++) {
 		be200_cmd_wr(idx, i, task[i]);
 		c = be200_cmd_rd(idx, i);
-		if (c != task[i])
+		if (c != task[i]){
+			//debug32("failed\n");
+			//be200_dump_register(idx);
 			return 0;
+		}
 	}
+//be200_dump_register(idx);
     return 1;
 }
 
 void be200_start(uint8_t idx)
 {
+	uint8_t r;
+	r = be200_cmd_ck(idx);
+	//debug32("before start idle:0x%02x\n",r);
 	be200_cmd_wr(idx, BE200_REG_START, 0xFF);
+	//be200_dump_register(idx);
+	r = be200_cmd_ck(idx);
+	//debug32("after start idle:0x%02x\n",r);
 }
 
 uint8_t be200_get_done(uint8_t idx, uint8_t * nonce_mask)
 {
 	uint8_t c;
 	c = be200_cmd_ck(idx);
+	//debug32("get done idle:0x%02x\n",c);
     if ( c & BE200_STAT_R_READY)
     {
         *nonce_mask = (c & BE200_STAT_NONCE_MASK) >> 2;

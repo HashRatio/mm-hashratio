@@ -17,6 +17,8 @@
 //#define BE200_ASIC_FREQUENCY 280
 //#define ASIC_COUNT	7
 
+#define ENABLE_LED 1
+
 #define CPU_FREQUENCY		(100 * 1000 * 1000) /* 50Mhz */
 #define UART_BAUD_RATE          (115200)
 
