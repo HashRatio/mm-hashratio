@@ -52,33 +52,10 @@ void spi_transfer(uint8_t idx, uint8_t * wbuff, uint8_t * rbuff, uint32_t cnt)
 	spi_select(tar_spi,chip_idx);
 	for(i=0;i<cnt;i++)
 	{
-		//debug32("==================\n");
-
-		//debug32("before tx while\n");
-		//debug32("status:%08x\n",tar_spi->status);
 		while (!(tar_spi->status & (LM32_SPI_STAT_TRDY)));
-		//debug32("after tx while\n");
-		//debug32("status:%08x\n",tar_spi->status);
-
-		//debug32("before write\n");
-		//debug32("status:%08x\n",tar_spi->status);
 		writeb(wbuff[i],&tar_spi->tx);
-		//debug32("after write\n");
-		//debug32("status:%08x\n",tar_spi->status);
-
-		/*debug32("before while %x\n",(tar_spi->status & (LM32_SPI_STAT_TRDY | LM32_SPI_STAT_RRDY)));
-		while (!(tar_spi->status & (LM32_SPI_STAT_TRDY | LM32_SPI_STAT_RRDY))){
-			debug32("in while %x\n",(tar_spi->status & (LM32_SPI_STAT_TRDY | LM32_SPI_STAT_RRDY)));
-			debug32("in while status:%08x\n",tar_spi->status);
-		}
-		//delay(5);*/
-		//debug32("before read\n");
-		//debug32("status:%08x\n",tar_spi->status);
 		while (!(tar_spi->status & (LM32_SPI_STAT_RRDY)));
 		rbuff[i] = tar_spi->rx;
-		//debug32("after read\n");
-		//debug32("status:%08x\n",tar_spi->status);
-		//debug32("==================\n");
 	}
 }
 
